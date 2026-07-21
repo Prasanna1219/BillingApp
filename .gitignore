@@ -37,6 +37,7 @@ backend/.env
 # typescript
 *.tsbuildinfo
 
+
 example
 
 # generated native folders
