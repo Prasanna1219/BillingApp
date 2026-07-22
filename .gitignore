@@ -43,6 +43,7 @@ example
 /ios
 /android
 
+
 # AI assistant configuration files
 .claude/
 AGENTS.md
