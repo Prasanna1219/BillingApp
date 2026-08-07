@@ -1,12 +1,10 @@
--- Create Database
-CREATE DATABASE IF NOT EXISTS billing_app;
-USE billing_app;
 
 -- Users Table (for Authentication & Roles)
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     phone_number VARCHAR(15) UNIQUE NOT NULL,
     username VARCHAR(100),
+    password VARCHAR(255),
     role ENUM('Owner', 'Secondary Admin', 'Biller') DEFAULT 'Biller',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

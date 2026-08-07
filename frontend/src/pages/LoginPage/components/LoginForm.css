@@ -1,0 +1,145 @@
+/* Form container */
+.loginForm {
+  flex: 1;
+  background: #0f172a;
+  padding: 50px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: #ffffff;
+}
+
+.loginForm h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: #ffffff;
+}
+
+.loginForm p {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  margin: 0 0 30px 0;
+  line-height: 1.4;
+}
+
+.loginForm form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* compact layout spacing */
+}
+
+.loginForm label {
+  display: block;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+/* Form input spacing group */
+.form-group {
+  margin-bottom: 15px;
+}
+
+/* Phone flexbox wrapper */
+.phone-input-container {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+/* Country code box */
+.phone-prefix {
+  display: inline-flex;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.03);
+  color: #ffffff;
+  font-size: 1rem;
+  user-select: none;
+}
+
+/* Input Fields styling */
+.inputStyle {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  color: #ffffff;
+  font-size: 1rem;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.inputStyle:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+
+.inputStyle::placeholder {
+  color: #475569;
+}
+
+/* Primary Button styling */
+.buttonStyle {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  background-color: #4f46e5;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.buttonStyle:hover {
+  background-color: #4338ca;
+}
+
+.buttonStyle:active {
+  transform: scale(0.98);
+}
+
+.buttonStyle:disabled,
+.inputStyle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Toggle Form Wrapper */
+.toggle-auth-container {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.toggle-auth-btn {
+  background: none;
+  border: none;
+  color: #4f46e5;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+  transition: color 0.2s;
+}
+
+.toggle-auth-btn:hover {
+  color: #6366f1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .loginForm {
+    padding: 30px 24px;
+  }
+}
