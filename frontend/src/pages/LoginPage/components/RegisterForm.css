@@ -92,7 +92,7 @@
 /* Input Fields styling */
 .registerForm .inputStyle {
   width: 100%;
-  padding: 14px 16px 14px 48px; /* Left padding for inline icon */
+  padding: 14px 16px 14px 48px !important; /* Left padding for inline icon */
   border-radius: 12px;
   border: 1px solid #e2e8f0;
   background-color: #ffffff;
