@@ -6,7 +6,7 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'billing_app',
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: 3, // Clever Cloud free tier max is 5 total
   queueLimit: 0
 });
 
