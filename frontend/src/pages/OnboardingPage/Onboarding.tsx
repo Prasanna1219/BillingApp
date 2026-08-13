@@ -8,15 +8,26 @@ const Onboarding = () => {
   const [businessType, setBusinessType] = useState('Retail');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
+  const [upiId, setUpiId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  // Redirect to login if user session is missing
+  // Redirect to login if user session is missing & prefill login phone number
   useEffect(() => {
-    const user = localStorage.getItem('session_user');
-    if (!user) {
+    const userStr = localStorage.getItem('session_user');
+    if (!userStr) {
       navigate('/login', { replace: true });
+    } else {
+      try {
+        const user = JSON.parse(userStr);
+        if (user.phone_number) {
+          const cleanPhone = user.phone_number.replace(/\D/g, '').slice(-10);
+          setPhone(cleanPhone);
+        }
+      } catch (err) {
+        console.error('Error parsing session user:', err);
+      }
     }
   }, [navigate]);
 
@@ -81,6 +92,7 @@ const Onboarding = () => {
           business_type: businessType,
           phone_number: phone,
           outlet_address: address,
+          upi_id: upiId.trim(),
         }),
       });
 
@@ -98,8 +110,10 @@ const Onboarding = () => {
         business_type: businessType,
         phone_number: phone,
         outlet_address: address,
+        upi_id: upiId.trim(),
       };
       localStorage.setItem('session_business', JSON.stringify(businessSession));
+      localStorage.setItem('business_id', String(data.businessId));
 
       // Route to main page (Inventory)
       navigate('/inventory');
@@ -206,6 +220,22 @@ const Onboarding = () => {
                   setError('');
                 }}
                 placeholder="Enter complete store address"
+                className="input-field"
+                disabled={loading}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="business-upi">Merchant UPI ID (Optional)</label>
+              <input
+                id="business-upi"
+                type="text"
+                value={upiId}
+                onChange={(e) => {
+                  setUpiId(e.target.value);
+                  setError('');
+                }}
+                placeholder="e.g. storename@upi or 9876543210@ybl"
                 className="input-field"
                 disabled={loading}
               />
