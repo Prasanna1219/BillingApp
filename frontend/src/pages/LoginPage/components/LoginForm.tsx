@@ -60,6 +60,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleRegister }) => {
 
       if (bizData.status === 'success' && bizData.hasBusiness) {
         localStorage.setItem('session_business', JSON.stringify(bizData.business));
+        localStorage.setItem('business_id', String(bizData.business.id)); // store id directly
         navigate('/inventory');
       } else {
         navigate('/onboarding');
