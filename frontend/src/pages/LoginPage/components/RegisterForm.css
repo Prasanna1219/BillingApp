@@ -1,145 +1,186 @@
-/* Form container */
-.loginForm {
-  flex: 1;
-  background: #0f172a;
-  padding: 50px 40px;
+/* Registration page container overrides (inherits loginForm classes) */
+.registerForm {
+  width: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  color: #ffffff;
+  box-sizing: border-box;
 }
 
-.loginForm h2 {
-  font-size: 1.75rem;
+/* Title & Subtitle */
+.registerForm .auth-title {
+  font-size: 1.85rem;
   font-weight: 700;
+  color: #0f172a;
+  text-align: center;
   margin: 0 0 8px 0;
-  color: #ffffff;
 }
 
-.loginForm p {
-  color: #94a3b8;
-  font-size: 0.9rem;
-  margin: 0 0 30px 0;
-  line-height: 1.4;
+.registerForm .auth-subtitle {
+  font-size: 0.95rem;
+  color: #475569;
+  text-align: center;
+  margin: 0 0 28px 0;
 }
 
-.loginForm form {
+/* Form layouts */
+.registerForm form {
   display: flex;
   flex-direction: column;
-  gap: 10px; /* slightly more compact for registration due to more inputs */
+  gap: 4px; /* slightly more compact due to 4 fields */
 }
 
-.loginForm label {
-  display: block;
-  font-size: 0.85rem;
-  color: #94a3b8;
-  margin-bottom: 8px;
-  font-weight: 500;
-}
-
-/* Form input spacing group */
-.form-group {
-  margin-bottom: 12px;
-}
-
-/* Phone flexbox wrapper */
-.phone-input-container {
+.registerForm .form-group {
+  margin-bottom: 16px;
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+}
+
+/* Labels */
+.registerForm .form-group label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 6px;
+}
+
+/* Input layout with inline icons */
+.registerForm .input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
   width: 100%;
 }
 
-/* Country code box */
-.phone-prefix {
-  display: inline-flex;
+.registerForm .input-icon-left {
+  position: absolute;
+  left: 16px;
+  display: flex;
   align-items: center;
-  padding: 14px 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background-color: rgba(255, 255, 255, 0.03);
-  color: #ffffff;
-  font-size: 1rem;
-  user-select: none;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.registerForm .input-icon-left svg {
+  width: 20px;
+  height: 20px;
+  color: #64748b;
+}
+
+.registerForm .eye-toggle-btn {
+  position: absolute;
+  right: 16px;
+  background: none;
+  border: none;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748b;
+  transition: color 0.15s;
+}
+
+.registerForm .eye-toggle-btn:hover {
+  color: #334155;
+}
+
+.registerForm .eye-toggle-btn svg {
+  width: 20px;
+  height: 20px;
 }
 
 /* Input Fields styling */
-.inputStyle {
+.registerForm .inputStyle {
   width: 100%;
-  padding: 14px 16px;
+  padding: 14px 16px 14px 48px; /* Left padding for inline icon */
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.03);
-  color: #ffffff;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #0f172a;
   font-size: 1rem;
   box-sizing: border-box;
   outline: none;
+  font-family: inherit;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.inputStyle:focus {
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+.registerForm .inputStyle::placeholder {
+  color: #94a3b8;
 }
 
-.inputStyle::placeholder {
-  color: #475569;
+.registerForm .inputStyle:focus {
+  border-color: #0258d4;
+  box-shadow: 0 0 0 4px rgba(2, 88, 212, 0.08);
 }
 
-/* Primary Button styling */
-.buttonStyle {
-  width: 100%;
-  padding: 14px;
-  border-radius: 12px;
-  border: none;
-  background-color: #4f46e5;
-  color: #ffffff;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 10px;
-  transition: background-color 0.2s, transform 0.1s;
-}
-
-.buttonStyle:hover {
-  background-color: #4338ca;
-}
-
-.buttonStyle:active {
-  transform: scale(0.98);
-}
-
-.buttonStyle:disabled,
-.inputStyle:disabled {
-  opacity: 0.6;
+.registerForm .inputStyle:disabled {
+  background-color: #f8fafc;
+  color: #94a3b8;
   cursor: not-allowed;
 }
 
-/* Toggle Form Wrapper */
-.toggle-auth-container {
-  margin-top: 20px;
-  text-align: center;
-  font-size: 0.9rem;
+/* Error message output */
+.registerForm .error-message {
+  color: #ef4444;
+  font-size: 0.82rem;
+  margin-bottom: 12px;
+  font-weight: 500;
+  display: block;
 }
 
-.toggle-auth-btn {
+/* Solid Blue Register Button */
+.registerForm .buttonStyle {
+  width: 100%;
+  padding: 15px;
+  border-radius: 12px;
+  border: none;
+  background-color: #0258d4; /* Vibrant brand blue */
+  color: #ffffff;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 12px;
+  box-shadow: 0 4px 12px rgba(2, 88, 212, 0.2);
+  transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+
+.registerForm .buttonStyle:hover {
+  background-color: #004bbf;
+  box-shadow: 0 6px 16px rgba(2, 88, 212, 0.25);
+}
+
+.registerForm .buttonStyle:active {
+  transform: scale(0.98);
+}
+
+.registerForm .buttonStyle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Switch auth navigation options */
+.registerForm .toggle-auth-container {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 0.92rem;
+  color: #475569;
+}
+
+.registerForm .toggle-auth-btn {
   background: none;
   border: none;
-  color: #4f46e5;
+  color: #0258d4;
   font-weight: 600;
   cursor: pointer;
   padding: 0;
+  margin-left: 4px;
   font-family: inherit;
   font-size: inherit;
-  transition: color 0.2s;
+  transition: color 0.15s;
 }
 
-.toggle-auth-btn:hover {
-  color: #6366f1;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .loginForm {
-    padding: 30px 24px;
-  }
+.registerForm .toggle-auth-btn:hover {
+  color: #0047b3;
+  text-decoration: underline;
 }

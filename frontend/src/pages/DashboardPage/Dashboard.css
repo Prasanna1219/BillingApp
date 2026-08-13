@@ -1,0 +1,526 @@
+/* Dashboard layout resets */
+.dashboard-page {
+  box-sizing: border-box;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: #1e293b;
+  min-height: 100%;
+}
+
+.dashboard-scrollable-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 16px; /* Spacing on mobile */
+  padding-bottom: 24px;
+}
+
+@media (min-width: 769px) {
+  .dashboard-scrollable-container {
+    padding: 0; /* Reset on desktop */
+    padding-bottom: 24px;
+  }
+}
+
+.dashboard-title-header h1 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #1e1b4b;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.02em;
+}
+
+.dashboard-title-header p {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* 1. Redesigned Pastel KPI Grid (2x2 Grid) */
+.overall-metrics-grid.redesigned-pastel-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Always 2 columns for a clean 2x2 grid */
+  gap: 12px;
+}
+
+@media (min-width: 576px) {
+  .overall-metrics-grid.redesigned-pastel-grid {
+    gap: 16px;
+  }
+}
+
+.pastel-card {
+  border: none !important;
+  border-radius: 20px;
+  padding: 14px 16px; /* Optimized padding for mobile 2-column */
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.015);
+  position: relative;
+  overflow: hidden;
+}
+
+@media (min-width: 576px) {
+  .pastel-card {
+    border-radius: 24px;
+    padding: 24px;
+    gap: 8px;
+  }
+}
+
+.card-icon-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+@media (min-width: 576px) {
+  .card-icon-badge {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 8px;
+  }
+}
+
+.card-badge-svg {
+  width: 18px;
+  height: 18px;
+  color: #ffffff; /* White icon color inside badge */
+}
+
+@media (min-width: 576px) {
+  .card-badge-svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* Specific Pastel themes matching user mockup */
+.pastel-card.pink {
+  background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+}
+.pastel-card.pink .card-icon-badge {
+  background-color: #f43f5e;
+}
+.pastel-card.pink .card-sub-info {
+  color: #3b82f6; /* Blue trend text matching mockup "+8% from yesterday" */
+}
+
+.pastel-card.yellow {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+}
+.pastel-card.yellow .card-icon-badge {
+  background-color: #f97316;
+}
+.pastel-card.yellow .card-sub-info {
+  color: #3b82f6;
+}
+
+.pastel-card.purple {
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+}
+.pastel-card.purple .card-icon-badge {
+  background-color: #8b5cf6;
+}
+.pastel-card.purple .card-sub-info {
+  color: #3b82f6;
+}
+
+.pastel-card.green {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+}
+.pastel-card.green .card-icon-badge {
+  background-color: #10b981;
+}
+.pastel-card.green .card-sub-info {
+  color: #16a34a; /* Green trend text */
+}
+
+.pastel-card.green.negative {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+}
+.pastel-card.green.negative .card-icon-badge {
+  background-color: #ef4444;
+}
+.pastel-card.green.negative .card-sub-info {
+  color: #dc2626; /* Red trend text */
+}
+
+.pastel-card .card-value {
+  color: #1e1b4b; /* Always bold slate blue matching mockup */
+}
+
+.pastel-card .card-label {
+  color: #64748b; /* Always gray title matching mockup */
+}
+
+.card-label {
+  font-size: 0.7rem; /* Optimized labels sizing */
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+@media (min-width: 576px) {
+  .card-label {
+    font-size: 0.85rem;
+  }
+}
+
+.card-value {
+  font-size: 1.25rem; /* Prevents overflow wrap of ₹0.00 / numbers on narrow mobile */
+  font-weight: 800;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (min-width: 576px) {
+  .card-value {
+    font-size: 1.8rem;
+    margin-top: 4px;
+  }
+}
+
+.card-sub-info {
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+@media (min-width: 576px) {
+  .card-sub-info {
+    font-size: 0.75rem;
+  }
+}
+
+/* 2. Today's Summary & Progress Circle Rings */
+.today-analytics-section {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+@media (min-width: 769px) {
+  .today-analytics-section {
+    grid-template-columns: 1fr 1.3fr;
+  }
+}
+
+.today-sales-card, .sales-chart-card {
+  background-color: #ffffff;
+  border: 1px solid #f1f5f9;
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.015);
+  display: flex;
+  flex-direction: column;
+}
+
+.today-sales-card h3, .sales-chart-card h3, .stock-report-card h3 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #1e1b4b;
+  margin: 0 0 20px 0;
+}
+
+.today-kpi-row {
+  margin-bottom: 20px;
+}
+
+.today-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kpi-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.kpi-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #4f46e5;
+}
+
+/* Radial splits panel layout */
+.radial-splits-container {
+  display: flex;
+  gap: 20px;
+  justify-content: space-around;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.radial-progress-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: #f8fafc;
+  padding: 12px 16px;
+  border-radius: 18px;
+  flex: 1;
+  min-width: 130px;
+}
+
+.svg-ring-wrapper {
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+
+.progress-ring {
+  transform: rotate(-90deg);
+}
+
+.ring-bg {
+  fill: none;
+  stroke: #e2e8f0;
+  stroke-width: 5;
+}
+
+.ring-fill {
+  fill: none;
+  stroke-width: 5;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s ease-in-out;
+}
+
+.ring-text {
+  fill: #1e293b;
+  font-size: 12px;
+  font-weight: 800;
+  transform: rotate(90deg);
+  transform-origin: 32px 32px;
+}
+
+.ring-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ring-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.ring-value {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #1e1b4b;
+}
+
+/* 3. Smooth SVG Line Chart styles */
+.chart-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  min-height: 160px;
+}
+
+.svg-chart-wrapper {
+  width: 100%;
+}
+
+.sales-svg-chart {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.chart-val-txt {
+  font-size: 9px;
+  font-weight: 800;
+  fill: #4f46e5;
+}
+
+.chart-date-txt {
+  font-size: 9px;
+  font-weight: 700;
+  fill: #94a3b8;
+}
+
+.chart-y-axis-label {
+  font-size: 8px;
+  font-weight: 600;
+  fill: #94a3b8;
+}
+
+.empty-chart-msg {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  font-style: italic;
+  text-align: center;
+}
+
+/* 4. Inventory Reports */
+.inventory-reports-section {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+@media (min-width: 769px) {
+  .inventory-reports-section {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.stock-report-card {
+  background-color: #ffffff;
+  border: 1px solid #f1f5f9;
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.015);
+  display: flex;
+  flex-direction: column;
+}
+
+.report-list-container {
+  flex-grow: 1;
+  max-height: 280px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.report-list-container::-webkit-scrollbar {
+  display: none;
+}
+
+.report-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.healthy-stock-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  color: #64748b;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.success-check-icon {
+  background-color: #dcfce7;
+  color: #15803d;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+/* Low stock alert items */
+.stock-alert-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fffbeb;
+  border: 1px solid #fef3c7;
+  padding: 14px 18px;
+  border-radius: 18px;
+}
+
+.alert-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.alert-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #78350f;
+}
+
+.alert-qty-desc {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #b45309;
+}
+
+.alert-badge {
+  background-color: #f59e0b;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 8px;
+}
+
+/* Lifespan Log Items */
+.lifespan-log-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 14px 18px;
+  border-radius: 18px;
+}
+
+.lifespan-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lifespan-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.lifespan-purchase, .lifespan-date {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.lifespan-duration-tag {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 10px;
+}
+
+/* Loading & error states */
+.dashboard-loading, .dashboard-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 50px;
+  font-weight: 600;
+  color: #64748b;
+  text-align: center;
+  min-height: 200px;
+}
+
+.dashboard-error {
+  color: #ef4444;
+}
+
+.split-label-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+

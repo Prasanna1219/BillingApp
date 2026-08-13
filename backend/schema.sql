@@ -73,8 +73,45 @@ CREATE TABLE IF NOT EXISTS orders (
     biller_id INT,
     total_amount DECIMAL(10,2) NOT NULL,
     status ENUM('Closed', 'On-Hold', 'Cancelled') DEFAULT 'Closed',
+    payment_method ENUM('Cash', 'UPI') DEFAULT 'Cash',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (business_id) REFERENCES business_profile(id) ON DELETE CASCADE,
     FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL,
     FOREIGN KEY (biller_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- Ingredients Table (Raw Inventory Batches)
+CREATE TABLE IF NOT EXISTS ingredients (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    business_id INT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    unit ENUM('kg', 'L', 'pcs') NOT NULL,
+    purchase_cost DECIMAL(10,2) NOT NULL,
+    quantity_purchased DECIMAL(10,2) NOT NULL,
+    remaining_quantity DECIMAL(10,2) NOT NULL,
+    purchase_date DATE NOT NULL,
+    days_lasted INT NULL,
+    FOREIGN KEY (business_id) REFERENCES business_profile(id) ON DELETE CASCADE
+);
+
+-- Recipes Table (Maps Products to Ingredients)
+CREATE TABLE IF NOT EXISTS recipes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    item_id INT NOT NULL,
+    ingredient_id INT NOT NULL,
+    quantity_needed DECIMAL(10,2) NOT NULL, -- e.g. 0.150 for 150g, 0.050 for 50ml
+    FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE,
+    FOREIGN KEY (ingredient_id) REFERENCES ingredients(id) ON DELETE CASCADE
+);
+
+-- Order Items Table
+CREATE TABLE IF NOT EXISTS order_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    item_id INT NOT NULL,
+    quantity INT NOT NULL,
+    sales_price DECIMAL(10,2) NOT NULL,
+    tax_amount DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE
 );

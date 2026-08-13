@@ -1,0 +1,327 @@
+/* NavbarLayout.css */
+
+/* Base Layout Container */
+.navbar-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8fafc; /* Soft neutral page background */
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Sidebar Navigation - Visible on Desktop */
+.sidebar {
+  width: 260px;
+  background: #ffffff;
+  border-right: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 0;
+  box-sizing: border-box;
+}
+
+/* Sidebar Logo Badge */
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 24px;
+  margin-bottom: 32px;
+}
+
+.sidebar-logo-img, .sidebar-logo-svg {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.sidebar-logo-text {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #1e1b4b;
+  letter-spacing: -0.02em;
+}
+
+/* Navigation Links */
+.sidebar-links {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-grow: 1;
+  padding: 0 12px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: #64748b; /* Inactive grey */
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 12px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.nav-link:hover {
+  background-color: #f8fafc;
+  color: #1e1b4b;
+}
+
+.nav-link.active {
+  background-color: #fff7ed; /* Very soft orange backdrop */
+  color: #e57c23; /* Active orange accent */
+}
+
+.nav-svg {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  transition: stroke 0.2s;
+}
+
+.nav-link:hover .nav-svg {
+  stroke: #1e1b4b;
+}
+
+.nav-link.active .nav-svg {
+  stroke: #e57c23;
+}
+
+.logout-sidebar-btn {
+  margin: 0 12px;
+  color: #94a3b8;
+}
+
+.logout-sidebar-btn:hover {
+  background-color: #fef2f2;
+  color: #ef4444;
+}
+
+.logout-sidebar-btn:hover .nav-svg {
+  stroke: #ef4444;
+}
+
+/* Main Content Area */
+.content {
+  flex: 1;
+  padding: 0; /* Full bleed on mobile */
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding-bottom: 96px; /* Space for mobile bottom bar */
+}
+
+@media (min-width: 769px) {
+  .content {
+    padding: 24px;
+    padding-bottom: 24px;
+  }
+}
+
+/* Mobile Bottom Navigation Bar - Hidden on Desktop */
+.bottom-nav {
+  display: none; /* Display flex on screens <= 768px */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 72px;
+  background-color: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.04);
+  justify-content: space-around;
+  align-items: center;
+  padding: 0 12px;
+  z-index: 99;
+}
+
+/* Mobile Bottom Navigation Button */
+.bottom-nav-btn {
+  background: none;
+  border: none;
+  color: #64748b; /* Inactive grey */
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex: 1;
+  height: 100%;
+  text-decoration: none;
+  position: relative;
+  transition: color 0.2s;
+}
+
+.bottom-nav-btn .nav-svg {
+  width: 26px;
+  height: 26px;
+}
+
+.bottom-nav-btn .label {
+  display: none;
+}
+
+/* Active Highlight Class */
+.bottom-nav-btn.active {
+  color: #e57c23; /* Active orange accent */
+}
+
+.bottom-nav-btn.active .nav-svg {
+  stroke: #e57c23;
+}
+
+/* Bottom Highlight Line Indicator */
+.bottom-nav-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: 6px;
+  left: 30%;
+  right: 30%;
+  height: 3px;
+  background-color: #e57c23;
+  border-radius: 2px;
+}
+
+.logout-bottom-btn {
+  color: #94a3b8;
+}
+
+.logout-bottom-btn:active {
+  color: #ef4444;
+}
+
+.logout-bottom-btn:active .nav-svg {
+  stroke: #ef4444;
+}
+
+/* Responsive breakpoint switching sidebar to bottom nav */
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+  .bottom-nav {
+    display: flex;
+  }
+}
+
+/* Custom Sign Out Confirmation Modal */
+.confirm-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.confirm-modal-container {
+  width: 100%;
+  max-width: 340px;
+  background-color: #ffffff;
+  border-radius: 24px;
+  padding: 28px 20px;
+  box-sizing: border-box;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  animation: modalScaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes modalScaleUp {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.confirm-modal-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.confirm-icon-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: #fee2e2;
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirm-svg {
+  width: 26px;
+  height: 26px;
+}
+
+.confirm-modal-header h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #1e1b4b;
+  margin: 0;
+}
+
+.confirm-modal-body p {
+  font-size: 0.95rem;
+  color: #64748b;
+  line-height: 1.5;
+  margin: 0 0 24px 0;
+}
+
+.confirm-modal-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.confirm-cancel-btn,
+.confirm-ok-btn {
+  flex: 1;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  font-family: inherit;
+}
+
+.confirm-cancel-btn {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.confirm-cancel-btn:hover {
+  background-color: #e2e8f0;
+}
+
+.confirm-ok-btn {
+  background-color: #ef4444;
+  color: #ffffff;
+}
+
+.confirm-ok-btn:hover {
+  background-color: #dc2626;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}

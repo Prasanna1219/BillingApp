@@ -1,4 +1,3 @@
-/* Reset body and html settings for page-level scroll prevention */
 html, body {
   margin: 0;
   padding: 0;
@@ -7,34 +6,21 @@ html, body {
 
 .login-page {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgb(8, 21, 43);
+  background: #f8fafc;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   padding: 20px;
+  box-sizing: border-box;
 }
 
 .loginContainer {
   display: flex;
-  width: 900px;
-  max-width: 100%;
-  height: 550px;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  box-shadow: 0 20px 50px 0 rgba(0, 0, 0, 0.4);
-  overflow: hidden;
-}
-
-/* Responsive adjustments for mobile/tablets */
-@media (max-width: 768px) {
-  .loginContainer {
-    flex-direction: column;
-    height: auto;
-    width: 100%;
-    max-width: 450px;
-  }
+  flex-direction: column;
+  width: 100%;
+  max-width: 400px;
+  box-sizing: border-box;
+  background-color: transparent;
 }
