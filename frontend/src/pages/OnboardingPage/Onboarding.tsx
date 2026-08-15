@@ -1,6 +1,51 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import CustomSelect from '../../components/CustomSelect/CustomSelect';
+import type { SelectOption } from '../../components/CustomSelect/CustomSelect';
 import './Onboarding.css';
+
+const businessTypeOptions: SelectOption[] = [
+  {
+    value: 'Retail',
+    label: 'Retail Store',
+    description: 'Grocery, apparel, electronics, or general store',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+      </svg>
+    )
+  },
+  {
+    value: 'Restaurant',
+    label: 'Restaurant / Cafe',
+    description: 'Dining, fast food, bakery, cafe, or cloud kitchen',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21V3m0 0a9.004 9.004 0 018.716 6.747M12 3a9.004 9.004 0 00-8.716 6.747" />
+      </svg>
+    )
+  },
+  {
+    value: 'Service',
+    label: 'Service & Salon',
+    description: 'Salon, spa, repair shop, or professional services',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.83-5.83M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l5.654-4.654m.27-2.617A5.986 5.986 0 003.54 3.541m12.448 12.449A5.986 5.986 0 0017.46 3.54" />
+      </svg>
+    )
+  },
+  {
+    value: 'Wholesale',
+    label: 'Wholesale & B2B',
+    description: 'Bulk distribution, B2B sales, or manufacturing',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+      </svg>
+    )
+  }
+];
 
 const Onboarding = () => {
   const [step, setStep] = useState(1);
@@ -170,16 +215,12 @@ const Onboarding = () => {
 
             <div className="form-group">
               <label htmlFor="business-type">Business Type</label>
-              <select
-                id="business-type"
+              <CustomSelect
+                options={businessTypeOptions}
                 value={businessType}
-                onChange={(e) => setBusinessType(e.target.value)}
-                className="input-field"
-              >
-                <option value="Retail">Retail Store</option>
-                <option value="Restaurant">Restaurant / Cafe</option>
-                <option value="Service">General Service</option>
-              </select>
+                onChange={(val) => setBusinessType(val)}
+                placeholder="Select your business type"
+              />
             </div>
 
             {error && <span className="error-text">{error}</span>}
