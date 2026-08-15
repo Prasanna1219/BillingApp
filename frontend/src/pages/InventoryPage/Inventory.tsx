@@ -1151,16 +1151,21 @@ const Inventory = () => {
                           <form onSubmit={handleSaveRecipe} className="recipe-mapping-form">
                             <h5>Link Ingredient</h5>
                             <div className="form-group">
-                              <select 
-                                value={recipeIngId} 
-                                onChange={(e) => setRecipeIngId(e.target.value)}
-                                className="input-field select-recipe-dropdown"
-                              >
-                                <option value="">-- Choose Ingredient --</option>
-                                {uniqueIngOptions.map(opt => (
-                                  <option key={opt.id} value={opt.id}>{opt.name} ({opt.unit})</option>
-                                ))}
-                              </select>
+                              <CustomSelect
+                                options={uniqueIngOptions.map(opt => ({
+                                  value: String(opt.id),
+                                  label: `${opt.name} (${opt.unit})`,
+                                  description: `Unit Cost: ₹${(parseFloat(String(opt.purchase_cost)) / parseFloat(String(opt.quantity_purchased))).toFixed(2)} / ${opt.unit}`,
+                                  icon: (
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                                    </svg>
+                                  )
+                                }))}
+                                value={recipeIngId}
+                                onChange={(val) => setRecipeIngId(val)}
+                                placeholder="Choose ingredient to link..."
+                              />
                             </div>
                             <div className="form-group">
                               <input 
