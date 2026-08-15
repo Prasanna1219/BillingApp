@@ -1273,8 +1273,11 @@ const Inventory = () => {
                           </form>
                         </>
                       ) : (
-                        <div className="recipe-select-prompt">
-                          👉 Select a dish on the left to configure its ingredients and cost structure.
+                        <div className="recipe-select-prompt" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: '20px', height: '20px', color: '#6366f1' }}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                          </svg>
+                          Select a dish on the left to configure its ingredients and cost structure.
                         </div>
                       )}
                     </div>
@@ -1293,7 +1296,11 @@ const Inventory = () => {
             <div className="modal-container" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
                 <h3>{productModal.mode === 'edit' ? 'Edit Product' : 'Add New Product'}</h3>
-                <button onClick={() => setProductModal({ show: false, mode: 'add' })} className="close-btn" disabled={pModalLoading}>✕</button>
+                <button onClick={() => setProductModal({ show: false, mode: 'add' })} className="close-btn" disabled={pModalLoading}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: '18px', height: '18px' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
 
               <form onSubmit={handleSaveProduct}>
@@ -1359,7 +1366,11 @@ const Inventory = () => {
             <div className="modal-container" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
                 <h3>{ingModal.mode === 'edit' ? 'Edit Ingredient Log' : ingModal.mode === 'restock' ? 'Restock Ingredient' : 'Log Raw Ingredient Purchase'}</h3>
-                <button onClick={() => setIngModal({ show: false, mode: 'add' })} className="close-btn" disabled={ingModalLoading}>✕</button>
+                <button onClick={() => setIngModal({ show: false, mode: 'add' })} className="close-btn" disabled={ingModalLoading}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: '18px', height: '18px' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
 
               <form onSubmit={handleSaveIngredient}>
@@ -1469,7 +1480,11 @@ const Inventory = () => {
             <div className="modal-container" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
                 <h3>Log Stock Deduction & Waste</h3>
-                <button onClick={() => setWasteModal({ show: false })} className="close-btn" disabled={wasteLoading}>✕</button>
+                <button onClick={() => setWasteModal({ show: false })} className="close-btn" disabled={wasteLoading}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: '18px', height: '18px' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
 
               <form onSubmit={handleSaveWasteAdjustment}>
@@ -1588,8 +1603,16 @@ const Inventory = () => {
           <div className="modal-container alert-modal-container">
             <div className="alert-modal-header">
               <div className={`alert-icon-circle ${customAlert.type}`}>
-                {customAlert.type === 'success' && <span>✓</span>}
-                {customAlert.type === 'error' && <span>✕</span>}
+                {customAlert.type === 'success' && (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ width: '20px', height: '20px' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                )}
+                {customAlert.type === 'error' && (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ width: '20px', height: '20px' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                )}
                 {customAlert.type === 'confirm' && <span>?</span>}
               </div>
               <h3>{customAlert.title}</h3>

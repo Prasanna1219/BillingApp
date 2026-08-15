@@ -151,7 +151,14 @@ const Profile: React.FC = () => {
           </div>
         </div>
 
-        {error && <div className="profile-error-alert">✕ {error}</div>}
+        {error && (
+          <div className="profile-error-alert" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: '16px', height: '16px' }}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="profile-form">
           <div className="profile-grid">
@@ -393,7 +400,11 @@ const Profile: React.FC = () => {
                 </div>
 
                 <div className="mock-invoice-banner">
-                  <div className="banner-logo-preview">⚡</div>
+                  <div className="banner-logo-preview">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: '16px', height: '16px' }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                    </svg>
+                  </div>
                   <div>
                     <h5>Header Branding</h5>
                     <p className="sub">{businessName || 'Business Title'} • {phone || 'Phone'}</p>

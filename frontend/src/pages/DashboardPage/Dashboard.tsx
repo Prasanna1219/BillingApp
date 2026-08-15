@@ -257,7 +257,9 @@ const Dashboard = () => {
             <div className="report-list-container">
               {data.lowStock.length === 0 ? (
                 <div className="healthy-stock-message">
-                  <span className="success-check-icon">✓</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: '20px', height: '20px', color: '#16a34a' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
                   <p>All ingredient stocks are healthy.</p>
                 </div>
               ) : (

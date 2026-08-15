@@ -230,7 +230,7 @@ const Pos = () => {
           <div className="pos-search-header">
             <input
               type="text"
-              placeholder="🔍 Search dishes (e.g. Vadai, Dosa...)"
+              placeholder="Search dishes by name (e.g. Vadai, Dosa...)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pos-search-input"
@@ -243,7 +243,9 @@ const Pos = () => {
             <div className="pos-error">{error}</div>
           ) : filteredItems.length === 0 ? (
             <div className="pos-empty-catalog">
-              <span className="no-items-emoji">🍽️</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: '40px', height: '40px', color: '#94a3b8' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+              </svg>
               <p>No products match your search.</p>
             </div>
           ) : (
@@ -272,7 +274,9 @@ const Pos = () => {
           
           {cart.length === 0 ? (
             <div className="empty-cart-message">
-              <span className="cart-emoji">🛒</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: '42px', height: '42px', color: '#94a3b8', marginBottom: '8px' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+              </svg>
               <p>Cart is empty.</p>
               <p className="cart-sub">Tap products on the left to add them to your bill.</p>
             </div>
@@ -433,7 +437,12 @@ const Pos = () => {
 
             {isConfirmed ? (
               <div className="bill-saved-status">
-                <div className="success-banner">✓ Bill Saved to Database</div>
+                <div className="success-banner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: '18px', height: '18px' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                  Bill Saved to Database
+                </div>
                 <button onClick={handleNewBill} className="primary-button new-bill-btn">
                   Create New Bill
                 </button>
@@ -467,8 +476,16 @@ const Pos = () => {
           <div className="modal-container alert-modal-container">
             <div className="alert-modal-header">
               <div className={`alert-icon-circle ${customAlert.type}`}>
-                {customAlert.type === 'success' && <span>✓</span>}
-                {customAlert.type === 'error' && <span>✕</span>}
+                {customAlert.type === 'success' && (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ width: '20px', height: '20px' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                )}
+                {customAlert.type === 'error' && (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ width: '20px', height: '20px' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                )}
                 {customAlert.type === 'confirm' && <span>?</span>}
               </div>
               <h3>{customAlert.title}</h3>
