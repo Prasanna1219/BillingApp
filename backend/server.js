@@ -243,11 +243,12 @@ app.get('/api/ingredients/:businessId', async (req, res) => {
 });
 
 app.post('/api/ingredients', async (req, res) => {
-  const { business_id, name, unit, purchase_cost, quantity_purchased, purchase_date } = req.body;
+  const { business_id, name, unit, purchase_cost, quantity_purchased, yield_percentage, purchase_date } = req.body;
   try {
+    const yieldVal = parseFloat(yield_percentage) || 100.00;
     const [result] = await db.query(
-      'INSERT INTO ingredients (business_id, name, unit, purchase_cost, quantity_purchased, remaining_quantity, purchase_date) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [business_id, name, unit, purchase_cost, quantity_purchased, quantity_purchased, purchase_date]
+      'INSERT INTO ingredients (business_id, name, unit, purchase_cost, quantity_purchased, remaining_quantity, yield_percentage, purchase_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [business_id, name, unit, purchase_cost, quantity_purchased, quantity_purchased, yieldVal, purchase_date]
     );
     res.json({ status: 'success', message: 'Ingredient log added', ingredientId: result.insertId });
   } catch (error) {
@@ -267,15 +268,86 @@ app.delete('/api/ingredients/:id', async (req, res) => {
 
 app.put('/api/ingredients/:id', async (req, res) => {
   const { id } = req.params;
-  const { name, unit, purchase_cost, quantity_purchased, remaining_quantity, purchase_date } = req.body;
+  const { name, unit, purchase_cost, quantity_purchased, remaining_quantity, yield_percentage, purchase_date } = req.body;
   try {
+    const yieldVal = parseFloat(yield_percentage) || 100.00;
     await db.query(
-      'UPDATE ingredients SET name = ?, unit = ?, purchase_cost = ?, quantity_purchased = ?, remaining_quantity = ?, purchase_date = ? WHERE id = ?',
-      [name, unit, purchase_cost, quantity_purchased, remaining_quantity, purchase_date, id]
+      'UPDATE ingredients SET name = ?, unit = ?, purchase_cost = ?, quantity_purchased = ?, remaining_quantity = ?, yield_percentage = ?, purchase_date = ? WHERE id = ?',
+      [name, unit, purchase_cost, quantity_purchased, remaining_quantity, yieldVal, purchase_date, id]
     );
     res.json({ status: 'success', message: 'Ingredient log updated' });
   } catch (error) {
     res.status(500).json({ status: 'error', message: 'Failed to update ingredient log', error: error.message });
+  }
+});
+
+// Stock Adjustments & Wastage Endpoints
+app.get('/api/stock-adjustments/:businessId', async (req, res) => {
+  const { businessId } = req.params;
+  try {
+    const [rows] = await db.query(
+      `SELECT sa.*, ing.name AS ingredient_name, ing.unit 
+       FROM stock_adjustments sa
+       JOIN ingredients ing ON sa.ingredient_id = ing.id
+       WHERE sa.business_id = ?
+       ORDER BY sa.created_at DESC`,
+      [businessId]
+    );
+    res.json({ status: 'success', adjustments: rows });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: 'Failed to fetch stock adjustments', error: error.message });
+  }
+});
+
+app.post('/api/stock-adjustments', async (req, res) => {
+  const { business_id, ingredient_id, quantity_deducted, reason, notes } = req.body;
+  if (!business_id || !ingredient_id || !quantity_deducted || !reason) {
+    return res.status(400).json({ status: 'error', message: 'Missing required adjustment fields' });
+  }
+
+  const connection = await db.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    const deductNum = parseFloat(quantity_deducted);
+
+    // 1. Insert stock adjustment log
+    const [result] = await connection.query(
+      'INSERT INTO stock_adjustments (business_id, ingredient_id, quantity_deducted, reason, notes) VALUES (?, ?, ?, ?, ?)',
+      [business_id, ingredient_id, deductNum, reason, notes || '']
+    );
+
+    // 2. Deduct remaining stock from active batches (FIFO)
+    const [batches] = await connection.query(
+      `SELECT * FROM ingredients 
+       WHERE name = (SELECT name FROM ingredients WHERE id = ?) 
+         AND business_id = ? 
+         AND remaining_quantity > 0 
+       ORDER BY purchase_date ASC, id ASC`,
+      [ingredient_id, business_id]
+    );
+
+    let needed = deductNum;
+    for (const batch of batches) {
+      if (needed <= 0) break;
+      const remaining = parseFloat(batch.remaining_quantity);
+      const deduct = Math.min(needed, remaining);
+      const newRemaining = remaining - deduct;
+      needed -= deduct;
+
+      await connection.query(
+        'UPDATE ingredients SET remaining_quantity = ? WHERE id = ?',
+        [newRemaining, batch.id]
+      );
+    }
+
+    await connection.commit();
+    res.json({ status: 'success', message: 'Stock adjustment logged successfully', adjustmentId: result.insertId });
+  } catch (error) {
+    await connection.rollback();
+    res.status(500).json({ status: 'error', message: 'Failed to log stock adjustment', error: error.message });
+  } finally {
+    connection.release();
   }
 });
 
@@ -366,7 +438,13 @@ app.post('/api/orders', async (req, res) => {
       );
 
       for (const recipe of recipes) {
-        const totalNeeded = quantity * parseFloat(recipe.quantity_needed);
+        // Fetch ingredient yield percentage to apply yield adjustment formula
+        const [ingRows] = await connection.query('SELECT yield_percentage FROM ingredients WHERE id = ?', [recipe.ingredient_id]);
+        const yieldPct = (ingRows.length && ingRows[0].yield_percentage) ? parseFloat(ingRows[0].yield_percentage) : 100.00;
+        
+        // Quantity Deducted = (Recipe Amount) / (Yield % / 100)
+        const rawNeeded = quantity * parseFloat(recipe.quantity_needed);
+        const totalNeeded = rawNeeded / (yieldPct / 100.0);
 
         // Fetch active ingredient batches for this ingredient (FIFO)
         const [batches] = await connection.query(

@@ -533,6 +533,255 @@
   transform: scale(0.98);
 }
 
+/* Summary Metrics Strip */
+.metrics-strip {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+@media (min-width: 769px) {
+  .metrics-strip {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.metric-card {
+  background-color: #ffffff;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.metric-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.metric-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.metric-icon.purple { background-color: #f5f3ff; color: #4f46e5; }
+.metric-icon.green { background-color: #f0fdf4; color: #16a34a; }
+.metric-icon.amber { background-color: #fffbeb; color: #d97706; }
+.metric-icon.rose { background-color: #fff1f2; color: #e11d48; }
+
+.metric-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-value {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.metric-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+/* Search & Filter Toolbar */
+.inventory-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.search-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.search-input-wrapper svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.search-input-field {
+  width: 100%;
+  padding: 12px 16px 12px 42px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #0f172a;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.search-input-field:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.filter-pills-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.filter-pills-row::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-pill {
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.filter-pill:hover {
+  background-color: #f8fafc;
+}
+
+.filter-pill.active {
+  background-color: #4f46e5;
+  border-color: #4f46e5;
+  color: #ffffff;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-dot.green { background-color: #22c55e; }
+.status-dot.amber { background-color: #f59e0b; }
+.status-dot.rose { background-color: #ef4444; }
+
+/* Status Badges on Cards */
+.stock-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.stock-status-badge.green { background-color: #f0fdf4; color: #15803d; }
+.stock-status-badge.amber { background-color: #fffbeb; color: #b45309; }
+.stock-status-badge.rose { background-color: #fef2f2; color: #b91c1c; }
+
+/* Yield Badge */
+.yield-badge {
+  background-color: #f3e8ff;
+  color: #6b21a8;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+/* Card Action Buttons */
+.waste-action-btn {
+  background-color: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #ffedd5;
+}
+
+.waste-action-btn:hover {
+  background-color: #ffedd5;
+}
+
+/* Adjustments Log Table / List */
+.adjustments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.adjustment-item-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.adjustment-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.adjustment-ing-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+.adjustment-reason-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background-color: #fff7ed;
+  color: #c2410c;
+}
+
+.adjustment-details {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.adjustment-qty {
+  font-weight: 700;
+  color: #ef4444;
+}
+
+.adjustment-notes {
+  font-size: 0.8rem;
+  color: #475569;
+  font-style: italic;
+  background-color: #f8fafc;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
 /* Overlay Backdrop */
 .modal-backdrop {
   position: fixed;

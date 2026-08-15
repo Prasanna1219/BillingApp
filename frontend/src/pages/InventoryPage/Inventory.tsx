@@ -88,8 +88,21 @@ interface Ingredient {
   purchase_cost: number;
   quantity_purchased: number;
   remaining_quantity: number;
+  yield_percentage?: number;
   purchase_date: string;
   days_lasted: number | null;
+}
+
+interface StockAdjustment {
+  id: number;
+  business_id: number;
+  ingredient_id: number;
+  ingredient_name: string;
+  unit: string;
+  quantity_deducted: number;
+  reason: string;
+  notes?: string;
+  created_at: string;
 }
 
 interface Recipe {
@@ -177,9 +190,25 @@ const Inventory = () => {
   const [ingUnit, setIngUnit] = useState<string>('kg');
   const [ingCost, setIngCost] = useState('');
   const [ingQty, setIngQty] = useState('');
+  const [ingYield, setIngYield] = useState('100');
   const [ingDate, setIngDate] = useState(new Date().toISOString().split('T')[0]);
   const [ingModalError, setIngModalError] = useState('');
   const [ingModalLoading, setIngModalLoading] = useState(false);
+
+  // Search & Stock Filter Toolbar State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [stockFilter, setStockFilter] = useState<'all' | 'in_stock' | 'low_stock' | 'depleted' | 'adjustments'>('all');
+  const [adjustments, setAdjustments] = useState<StockAdjustment[]>([]);
+
+  // Log Waste & Batch Usage Modal State
+  const [wasteModal, setWasteModal] = useState<{
+    show: boolean;
+    ingredient?: Ingredient;
+  }>({ show: false });
+  const [wasteQty, setWasteQty] = useState('');
+  const [wasteReason, setWasteReason] = useState('Batch/Fryer Filling');
+  const [wasteNotes, setWasteNotes] = useState('');
+  const [wasteLoading, setWasteLoading] = useState(false);
 
   // Recipe Selection and Mapping State
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
@@ -215,7 +244,8 @@ const Inventory = () => {
       await Promise.all([
         fetchItems(businessId),
         fetchIngredients(businessId),
-        fetchRecipes(businessId)
+        fetchRecipes(businessId),
+        fetchAdjustments(businessId)
       ]);
     } catch (err: any) {
       setError(err.message || 'Failed to load inventory data.');
@@ -236,6 +266,18 @@ const Inventory = () => {
     const data = await res.json();
     if (!res.ok || data.status === 'error') throw new Error(data.message);
     setIngredients(data.ingredients || []);
+  };
+
+  const fetchAdjustments = async (businessId: number) => {
+    try {
+      const res = await fetch(`/api/stock-adjustments/${businessId}`);
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        setAdjustments(data.adjustments || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch stock adjustments:', err);
+    }
   };
 
   const fetchRecipes = async (businessId: number) => {
@@ -385,6 +427,7 @@ const Inventory = () => {
         unit: ingUnit,
         purchase_cost: costNum,
         quantity_purchased: qtyNum,
+        yield_percentage: parseFloat(ingYield) || 100,
         purchase_date: ingDate
       };
 
@@ -408,6 +451,7 @@ const Inventory = () => {
       setIngName('');
       setIngCost('');
       setIngQty('');
+      setIngYield('100');
       fetchIngredients(business.id);
     } catch (err: any) {
       setIngModalError(err.message || 'Failed to save ingredient log.');
@@ -430,6 +474,47 @@ const Inventory = () => {
         showAlert(err.message || 'Failed to delete ingredient.');
       }
     });
+  };
+
+  // Handle Log Waste / Batch Usage Submission
+  const handleSaveWasteAdjustment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!business || !wasteModal.ingredient) return;
+
+    const deductNum = parseFloat(wasteQty);
+    if (isNaN(deductNum) || deductNum <= 0) {
+      showAlert('Enter a valid quantity to deduct.');
+      return;
+    }
+
+    setWasteLoading(true);
+    try {
+      const res = await fetch('/api/stock-adjustments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          business_id: business.id,
+          ingredient_id: wasteModal.ingredient.id,
+          quantity_deducted: deductNum,
+          reason: wasteReason,
+          notes: wasteNotes
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.status === 'error') throw new Error(data.message);
+
+      showAlert('Stock deduction logged successfully!', 'success', 'Deduction Logged');
+      setWasteModal({ show: false });
+      setWasteQty('');
+      setWasteNotes('');
+      fetchIngredients(business.id);
+      fetchAdjustments(business.id);
+    } catch (err: any) {
+      showAlert(err.message || 'Failed to log stock deduction.');
+    } finally {
+      setWasteLoading(false);
+    }
   };
 
   // Recipe Config CRUD
@@ -601,70 +686,275 @@ const Inventory = () => {
 
             {/* TAB 2: INGREDIENTS */}
             {activeTab === 'ingredients' && (
-              ingredients.length === 0 ? (
-                <div className="empty-state">
-                  <div className="empty-icon-circle">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" className="empty-svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z" />
-                    </svg>
-                  </div>
-                  <h3>No raw materials logged</h3>
-                  <p>Log your purchases of raw ingredients (e.g. Cooking Oil, Flour) to track usage and cost.</p>
-                  <button onClick={() => handleOpenIngModal('add')} className="start-btn">
-                    Log Ingredient Purchase
-                  </button>
-                </div>
-              ) : (
-                <div className="items-list">
-                  {ingredients.map((ing) => (
-                    <div key={ing.id} className="item-card flex-col-card">
-                      
-                      {/* Top Row: Name, Cost */}
-                      <div className="item-card-row-top">
-                        <span className="item-name">{ing.name}</span>
-                        <span className="item-price">₹{parseFloat(String(ing.purchase_cost)).toFixed(2)}</span>
-                      </div>
-
-                      {/* Middle Row: Badges */}
-                      <div className="item-card-row-middle">
-                        <span className="purchase-badge">Bought {ing.quantity_purchased}{ing.unit}</span>
-                        <span className="stock-badge">Remaining {ing.remaining_quantity}{ing.unit}</span>
-                      </div>
-
-                      {/* Bottom Row: Dates & Actions */}
-                      <div className="item-card-row-bottom">
-                        <div className="ingredient-dates flex-col-meta">
-                          <span className="date-text">Purchased: {ing.purchase_date.split('T')[0]}</span>
-                          {ing.days_lasted !== null ? (
-                            <span className="duration-tag">Lasted: {ing.days_lasted} days</span>
-                          ) : (
-                            <span className="duration-tag active">Currently Active</span>
-                          )}
-                        </div>
-
-                        <div className="item-card-actions-right">
-                          <button onClick={() => handleOpenIngModal('restock', ing)} className="item-card-btn restock-btn" title="Restock Batch">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                            </svg>
-                          </button>
-                          <button onClick={() => handleOpenIngModal('edit', ing)} className="item-card-btn edit" title="Edit Log">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.83 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
-                            </svg>
-                          </button>
-                          <button onClick={() => handleDeleteIngredient(ing.id)} className="item-card-btn delete" title="Delete">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-
+              <div className="ingredients-view">
+                
+                {/* 1. Summary Metrics Strip */}
+                <div className="metrics-strip">
+                  <div className="metric-card">
+                    <div className="metric-icon purple">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                      </svg>
                     </div>
-                  ))}
+                    <div className="metric-info">
+                      <span className="metric-value">{ingredients.length}</span>
+                      <span className="metric-label">Total Items</span>
+                    </div>
+                  </div>
+
+                  <div className="metric-card">
+                    <div className="metric-icon green">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-6h6m4.5 0a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z" />
+                      </svg>
+                    </div>
+                    <div className="metric-info">
+                      <span className="metric-value">
+                        ₹{ingredients.reduce((acc, curr) => {
+                          const rem = parseFloat(String(curr.remaining_quantity)) || 0;
+                          const cost = parseFloat(String(curr.purchase_cost)) || 0;
+                          const purchased = parseFloat(String(curr.quantity_purchased)) || 1;
+                          return acc + (rem * (cost / purchased));
+                        }, 0).toFixed(2)}
+                      </span>
+                      <span className="metric-label">Stock Value</span>
+                    </div>
+                  </div>
+
+                  <div className="metric-card">
+                    <div className="metric-icon amber">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                      </svg>
+                    </div>
+                    <div className="metric-info">
+                      <span className="metric-value">
+                        {ingredients.filter(ing => {
+                          const rem = parseFloat(String(ing.remaining_quantity)) || 0;
+                          const pur = parseFloat(String(ing.quantity_purchased)) || 1;
+                          return (rem / pur) <= 0.2 && rem > 0;
+                        }).length}
+                      </span>
+                      <span className="metric-label">Low Stock</span>
+                    </div>
+                  </div>
+
+                  <div className="metric-card">
+                    <div className="metric-icon rose">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79" />
+                      </svg>
+                    </div>
+                    <div className="metric-info">
+                      <span className="metric-value">{adjustments.length}</span>
+                      <span className="metric-label">Waste Logs</span>
+                    </div>
+                  </div>
                 </div>
-              )
+
+                {/* 2. Search & Stock Filter Toolbar */}
+                <div className="inventory-toolbar">
+                  <div className="search-input-wrapper">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                    </svg>
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search ingredients by name..."
+                      className="search-input-field"
+                    />
+                  </div>
+
+                  <div className="filter-pills-row">
+                    <button
+                      className={`filter-pill ${stockFilter === 'all' ? 'active' : ''}`}
+                      onClick={() => setStockFilter('all')}
+                    >
+                      All Items ({ingredients.length})
+                    </button>
+                    <button
+                      className={`filter-pill ${stockFilter === 'in_stock' ? 'active' : ''}`}
+                      onClick={() => setStockFilter('in_stock')}
+                    >
+                      <span className="status-dot green"></span> In Stock
+                    </button>
+                    <button
+                      className={`filter-pill ${stockFilter === 'low_stock' ? 'active' : ''}`}
+                      onClick={() => setStockFilter('low_stock')}
+                    >
+                      <span className="status-dot amber"></span> Low Stock
+                    </button>
+                    <button
+                      className={`filter-pill ${stockFilter === 'depleted' ? 'active' : ''}`}
+                      onClick={() => setStockFilter('depleted')}
+                    >
+                      <span className="status-dot rose"></span> Depleted
+                    </button>
+                    <button
+                      className={`filter-pill ${stockFilter === 'adjustments' ? 'active' : ''}`}
+                      onClick={() => setStockFilter('adjustments')}
+                    >
+                      Trash Logs ({adjustments.length})
+                    </button>
+                  </div>
+                </div>
+
+                {/* 3. Items List or Adjustment Logs View */}
+                {stockFilter === 'adjustments' ? (
+                  adjustments.length === 0 ? (
+                    <p className="no-data-sub" style={{ textAlign: 'center', padding: '30px' }}>
+                      No manual waste or stock adjustments logged yet.
+                    </p>
+                  ) : (
+                    <div className="adjustments-list">
+                      {adjustments.map((adj) => (
+                        <div key={adj.id} className="adjustment-item-card">
+                          <div className="adjustment-top-row">
+                            <span className="adjustment-ing-name">{adj.ingredient_name}</span>
+                            <span className="adjustment-reason-badge">{adj.reason}</span>
+                          </div>
+                          <div className="adjustment-details">
+                            <span>Deducted: <span className="adjustment-qty">-{adj.quantity_deducted} {adj.unit}</span></span>
+                            <span>{new Date(adj.created_at).toLocaleDateString()}</span>
+                          </div>
+                          {adj.notes && <div className="adjustment-notes">"{adj.notes}"</div>}
+                        </div>
+                      ))}
+                    </div>
+                  )
+                ) : (
+                  ingredients.length === 0 ? (
+                    <div className="empty-state">
+                      <div className="empty-icon-circle">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" className="empty-svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z" />
+                        </svg>
+                      </div>
+                      <h3>No raw materials logged</h3>
+                      <p>Log your purchases of raw ingredients (e.g. Cooking Oil, Flour) to track usage and cost.</p>
+                      <button onClick={() => handleOpenIngModal('add')} className="start-btn">
+                        Log Ingredient Purchase
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="items-list">
+                      {ingredients
+                        .filter((ing) => {
+                          const matchesSearch = ing.name.toLowerCase().includes(searchQuery.toLowerCase());
+                          if (!matchesSearch) return false;
+                          const rem = parseFloat(String(ing.remaining_quantity)) || 0;
+                          const pur = parseFloat(String(ing.quantity_purchased)) || 1;
+                          const ratio = rem / pur;
+                          if (stockFilter === 'in_stock') return ratio > 0.2;
+                          if (stockFilter === 'low_stock') return ratio <= 0.2 && rem > 0;
+                          if (stockFilter === 'depleted') return rem <= 0;
+                          return true;
+                        })
+                        .map((ing) => {
+                          const rem = parseFloat(String(ing.remaining_quantity)) || 0;
+                          const pur = parseFloat(String(ing.quantity_purchased)) || 1;
+                          const ratio = rem / pur;
+                          const isDepleted = rem <= 0;
+                          const isLow = ratio <= 0.2 && rem > 0;
+                          const unitPrice = (parseFloat(String(ing.purchase_cost)) / pur).toFixed(2);
+                          const yieldPct = ing.yield_percentage ? parseFloat(String(ing.yield_percentage)) : 100;
+
+                          return (
+                            <div key={ing.id} className="item-card flex-col-card">
+                              {/* Top Row: Name (left), Status Badge (right) */}
+                              <div className="item-card-row-top">
+                                <span className="item-name">{ing.name}</span>
+                                {isDepleted ? (
+                                  <span className="stock-status-badge rose">
+                                    <span className="status-dot rose"></span> Depleted
+                                  </span>
+                                ) : isLow ? (
+                                  <span className="stock-status-badge amber">
+                                    <span className="status-dot amber"></span> Low Stock
+                                  </span>
+                                ) : (
+                                  <span className="stock-status-badge green">
+                                    <span className="status-dot green"></span> In Stock
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Middle Row: Stock Badges & Yield */}
+                              <div className="item-card-row-middle">
+                                <span className="stock-badge">Remaining {ing.remaining_quantity} {ing.unit}</span>
+                                <span className="purchase-badge">Unit: ₹{unitPrice}/{ing.unit}</span>
+                                {yieldPct < 100 && (
+                                  <span className="yield-badge">Yield: {yieldPct}%</span>
+                                )}
+                              </div>
+
+                              {/* Bottom Row: Dates & Actions */}
+                              <div className="item-card-row-bottom">
+                                <div className="ingredient-dates flex-col-meta">
+                                  <span className="date-text">Purchased: {ing.purchase_date.split('T')[0]}</span>
+                                  {ing.days_lasted !== null ? (
+                                    <span className="duration-tag">Lasted: {ing.days_lasted} days</span>
+                                  ) : (
+                                    <span className="duration-tag active">Active Batch</span>
+                                  )}
+                                </div>
+
+                                <div className="item-card-actions-right">
+                                  <button
+                                    onClick={() => handleOpenIngModal('restock', ing)}
+                                    className="item-card-btn restock-btn"
+                                    title="Restock Batch"
+                                  >
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                    </svg>
+                                  </button>
+
+                                  <button
+                                    onClick={() => {
+                                      setWasteModal({ show: true, ingredient: ing });
+                                      setWasteQty('');
+                                      setWasteNotes('');
+                                    }}
+                                    className="item-card-btn waste-action-btn"
+                                    title="Log Waste / Fryer Batch Usage"
+                                  >
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79" />
+                                    </svg>
+                                  </button>
+
+                                  <button
+                                    onClick={() => handleOpenIngModal('edit', ing)}
+                                    className="item-card-btn edit"
+                                    title="Edit Log"
+                                  >
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.83 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                                    </svg>
+                                  </button>
+
+                                  <button
+                                    onClick={() => handleDeleteIngredient(ing.id)}
+                                    className="item-card-btn delete"
+                                    title="Delete"
+                                  >
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )
+                )}
+
+              </div>
             )}
 
             {/* TAB 3: RECIPE MAPPING */}
@@ -900,6 +1190,24 @@ const Inventory = () => {
                 })()}
 
                 <div className="form-group">
+                  <label>Usable Yield Percentage (%)</label>
+                  <input
+                    type="number"
+                    step="1"
+                    min="1"
+                    max="100"
+                    value={ingYield}
+                    onChange={(e) => setIngYield(e.target.value)}
+                    placeholder="100"
+                    className="input-field"
+                    disabled={ingModalLoading}
+                  />
+                  <small style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '4px' }}>
+                    e.g. Set to 70% if 30% is lost to stems, peels, or trimming.
+                  </small>
+                </div>
+
+                <div className="form-group">
                   <label>Purchase Date <small style={{ color: '#6366f1', fontWeight: 500 }}>(Defaults to Today)</small></label>
                   <input
                     type="date"
@@ -912,6 +1220,123 @@ const Inventory = () => {
                 {ingModalError && <span className="error-text">{ingModalError}</span>}
                 <button type="submit" className="primary-button" disabled={ingModalLoading}>
                   {ingModalLoading ? 'Saving...' : 'Save Ingredient'}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL: LOG WASTE & BATCH USAGE */}
+        {wasteModal.show && wasteModal.ingredient && (
+          <div className="modal-backdrop" onClick={() => setWasteModal({ show: false })}>
+            <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>Log Stock Deduction & Waste</h3>
+                <button onClick={() => setWasteModal({ show: false })} className="close-btn" disabled={wasteLoading}>✕</button>
+              </div>
+
+              <form onSubmit={handleSaveWasteAdjustment}>
+                <div className="form-group">
+                  <label>Ingredient</label>
+                  <input
+                    type="text"
+                    value={`${wasteModal.ingredient.name} (Remaining: ${wasteModal.ingredient.remaining_quantity} ${wasteModal.ingredient.unit})`}
+                    className="input-field"
+                    disabled
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Quantity to Deduct ({wasteModal.ingredient.unit})</label>
+                  <input
+                    type="number"
+                    step="0.001"
+                    min="0"
+                    max={wasteModal.ingredient.remaining_quantity}
+                    value={wasteQty}
+                    onChange={(e) => setWasteQty(e.target.value)}
+                    placeholder={`e.g. 2.5 ${wasteModal.ingredient.unit}`}
+                    className="input-field"
+                    disabled={wasteLoading}
+                    autoFocus
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Deduction Reason</label>
+                  <CustomSelect
+                    options={[
+                      {
+                        value: 'Batch/Fryer Filling',
+                        label: 'Batch / Fryer Filling',
+                        description: 'Bulk operational usage (e.g. filling deep fryer)',
+                        icon: (
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.372A2.25 2.25 0 004.5 16v2.25C4.5 19.493 5.507 20.5 6.75 20.5h10.5c1.243 0 2.25-1.007 2.25-2.25V16c0-.597-.237-1.169-.659-1.591l-4.091-4.063a2.25 2.25 0 01-.659-1.591V3.104" />
+                          </svg>
+                        )
+                      },
+                      {
+                        value: 'Spoilage/Expired',
+                        label: 'Spoilage / Expired',
+                        description: 'Spoiled, stale, moldy, or expired inventory',
+                        icon: (
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                          </svg>
+                        )
+                      },
+                      {
+                        value: 'Spill/Damage',
+                        label: 'Spill / Damage',
+                        description: 'Dropped, broken, or spilled inventory',
+                        icon: (
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 21v-2.25m-6.364-.386l1.591-1.591M3 12h2.25m.386-6.364l1.591 1.591" />
+                          </svg>
+                        )
+                      },
+                      {
+                        value: 'Trimming Loss',
+                        label: 'Trimming / Yield Loss',
+                        description: 'Stems, skins, bones, or prep trimming discarded',
+                        icon: (
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M7.848 8.25l1.536.887m-1.536-.887A4.248 4.248 0 004.5 12a4.248 4.248 0 004.248 4.248c1.378 0 2.6-.656 3.376-1.68m0 0l2.584 1.492m-2.584-1.492L7.848 8.25m0 0a4.248 4.248 0 014.248-4.248c1.378 0 2.6.656 3.376 1.68m0 0l2.584-1.492" />
+                          </svg>
+                        )
+                      },
+                      {
+                        value: 'Manual Correction',
+                        label: 'Manual Correction',
+                        description: 'Inventory audit or stock correction',
+                        icon: (
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                          </svg>
+                        )
+                      }
+                    ]}
+                    value={wasteReason}
+                    onChange={(val) => setWasteReason(val)}
+                    placeholder="Select deduction reason"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Notes (Optional)</label>
+                  <input
+                    type="text"
+                    value={wasteNotes}
+                    onChange={(e) => setWasteNotes(e.target.value)}
+                    placeholder="e.g. Filled deep fryer for weekend rush"
+                    className="input-field"
+                    disabled={wasteLoading}
+                  />
+                </div>
+
+                <button type="submit" className="primary-button waste-action-btn" disabled={wasteLoading}>
+                  {wasteLoading ? 'Logging...' : 'Confirm Stock Deduction'}
                 </button>
               </form>
             </div>

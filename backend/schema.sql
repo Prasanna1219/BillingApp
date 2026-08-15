@@ -89,9 +89,23 @@ CREATE TABLE IF NOT EXISTS ingredients (
     purchase_cost DECIMAL(10,2) NOT NULL,
     quantity_purchased DECIMAL(10,2) NOT NULL,
     remaining_quantity DECIMAL(10,2) NOT NULL,
+    yield_percentage DECIMAL(5,2) DEFAULT 100.00,
     purchase_date DATE NOT NULL,
     days_lasted INT NULL,
     FOREIGN KEY (business_id) REFERENCES business_profile(id) ON DELETE CASCADE
+);
+
+-- Stock Adjustments & Wastage Log Table
+CREATE TABLE IF NOT EXISTS stock_adjustments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    business_id INT NOT NULL,
+    ingredient_id INT NOT NULL,
+    quantity_deducted DECIMAL(10,2) NOT NULL,
+    reason ENUM('Batch/Fryer Filling', 'Spoilage/Expired', 'Spill/Damage', 'Trimming Loss', 'Manual Correction') NOT NULL,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (business_id) REFERENCES business_profile(id) ON DELETE CASCADE,
+    FOREIGN KEY (ingredient_id) REFERENCES ingredients(id) ON DELETE CASCADE
 );
 
 -- Recipes Table (Maps Products to Ingredients)
