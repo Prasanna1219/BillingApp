@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS ingredients (
     id INT AUTO_INCREMENT PRIMARY KEY,
     business_id INT NOT NULL,
     name VARCHAR(255) NOT NULL,
-    unit ENUM('kg', 'L', 'pcs') NOT NULL,
+    unit VARCHAR(20) NOT NULL,
     purchase_cost DECIMAL(10,2) NOT NULL,
     quantity_purchased DECIMAL(10,2) NOT NULL,
     remaining_quantity DECIMAL(10,2) NOT NULL,

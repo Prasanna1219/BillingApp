@@ -1,6 +1,71 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import CustomSelect from '../../components/CustomSelect/CustomSelect';
+import type { SelectOption } from '../../components/CustomSelect/CustomSelect';
 import './Inventory.css';
+
+const unitOptions: SelectOption[] = [
+  {
+    value: 'kg',
+    label: 'Kilograms (kg)',
+    description: 'Weight measurement (1 kg = 1000 g)',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v18m9-9H3" />
+      </svg>
+    )
+  },
+  {
+    value: 'g',
+    label: 'Grams (g)',
+    description: 'Precision weight measurement (1 g)',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-6-6h12" />
+      </svg>
+    )
+  },
+  {
+    value: 'L',
+    label: 'Liters (L)',
+    description: 'Liquid volume measurement (1 L = 1000 ml)',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25z" />
+      </svg>
+    )
+  },
+  {
+    value: 'ml',
+    label: 'Milliliters (ml)',
+    description: 'Precision liquid volume measurement (1 ml)',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.372A2.25 2.25 0 004.5 16v2.25C4.5 19.493 5.507 20.5 6.75 20.5h10.5c1.243 0 2.25-1.007 2.25-2.25V16c0-.597-.237-1.169-.659-1.591l-4.091-4.063a2.25 2.25 0 01-.659-1.591V3.104" />
+      </svg>
+    )
+  },
+  {
+    value: 'pcs',
+    label: 'Pieces (pcs)',
+    description: 'Count per individual unit (items, eggs, buns, etc.)',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+      </svg>
+    )
+  },
+  {
+    value: 'pack',
+    label: 'Packs / Boxes (pack)',
+    description: 'Pre-packaged boxes, bundles, or packets',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+      </svg>
+    )
+  }
+];
 
 interface Item {
   id: number;
@@ -19,7 +84,7 @@ interface Ingredient {
   id: number;
   business_id: number;
   name: string;
-  unit: 'kg' | 'L' | 'pcs';
+  unit: string;
   purchase_cost: number;
   quantity_purchased: number;
   remaining_quantity: number;
@@ -34,7 +99,7 @@ interface Recipe {
   quantity_needed: number;
   item_name: string;
   ingredient_name: string;
-  unit: 'kg' | 'L' | 'pcs';
+  unit: string;
 }
 
 interface BusinessSession {
@@ -109,7 +174,7 @@ const Inventory = () => {
     ingredient?: Ingredient;
   }>({ show: false, mode: 'add' });
   const [ingName, setIngName] = useState('');
-  const [ingUnit, setIngUnit] = useState<'kg' | 'L' | 'pcs'>('kg');
+  const [ingUnit, setIngUnit] = useState<string>('kg');
   const [ingCost, setIngCost] = useState('');
   const [ingQty, setIngQty] = useState('');
   const [ingDate, setIngDate] = useState(new Date().toISOString().split('T')[0]);
@@ -784,16 +849,12 @@ const Inventory = () => {
                 </div>
                 <div className="form-group">
                   <label>Measurement Unit</label>
-                  <select 
-                    value={ingUnit} 
-                    onChange={(e: any) => setIngUnit(e.target.value)} 
-                    className="input-field"
-                    disabled={ingModalLoading || ingModal.mode === 'restock'}
-                  >
-                    <option value="kg">Kilograms (kg)</option>
-                    <option value="L">Liters (L)</option>
-                    <option value="pcs">Pieces (pcs)</option>
-                  </select>
+                  <CustomSelect
+                    options={unitOptions}
+                    value={ingUnit}
+                    onChange={(val) => setIngUnit(val)}
+                    placeholder="Select measurement unit"
+                  />
                 </div>
                 <div className="form-group">
                   <label>Total Purchased Cost (₹)</label>
