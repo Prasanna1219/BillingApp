@@ -468,7 +468,7 @@ const Analytics: React.FC = () => {
               <div className="empty-chart">No sales data for selected period.</div>
             ) : (
               <div className="chart-scroll-wrapper">
-                <svg width="100%" height={chartHeight} viewBox="0 0 800 220" preserveAspectRatio="none" className="analytics-svg-chart">
+                <svg width="100%" height={chartHeight} viewBox="0 0 800 220" className="analytics-svg-chart">
                   <defs>
                     {/* Indigo Fading Gradient for Sales Wave */}
                     <linearGradient id="salesWaveGrad" x1="0" y1="0" x2="0" y2="1">
