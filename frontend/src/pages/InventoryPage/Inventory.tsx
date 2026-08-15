@@ -882,8 +882,25 @@ const Inventory = () => {
                     disabled={ingModalLoading}
                   />
                 </div>
+
+                {/* Auto-calculated Unit Cost Live Preview */}
+                {(() => {
+                  const costNum = parseFloat(ingCost);
+                  const qtyNum = parseFloat(ingQty);
+                  if (!isNaN(costNum) && !isNaN(qtyNum) && qtyNum > 0) {
+                    const unitPrice = (costNum / qtyNum).toFixed(2);
+                    return (
+                      <div className="unit-cost-preview-badge">
+                        <span className="unit-cost-label">Calculated Unit Cost:</span>
+                        <span className="unit-cost-value">₹{unitPrice} / {ingUnit}</span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+
                 <div className="form-group">
-                  <label>Purchase Date</label>
+                  <label>Purchase Date <small style={{ color: '#6366f1', fontWeight: 500 }}>(Defaults to Today)</small></label>
                   <input
                     type="date"
                     value={ingDate}
