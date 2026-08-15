@@ -130,10 +130,10 @@
 }
 
 .range-pill.active {
-  background-color: #4f46e5;
-  border-color: #4f46e5;
+  background-color: #6366f1;
+  border-color: #6366f1;
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
 }
 
 .granularity-pill.active {
@@ -185,7 +185,7 @@
 }
 
 .date-input-group input[type="date"]:focus {
-  border-color: #4f46e5;
+  border-color: #6366f1;
 }
 
 /* PRESET METRIC SELECTION PILLS */
@@ -205,7 +205,7 @@
 .preset-pill {
   border: none;
   background-color: #eff6ff;
-  color: #2563eb;
+  color: #4338ca;
   padding: 9px 18px;
   border-radius: 24px;
   font-size: 0.85rem;
@@ -216,13 +216,13 @@
 }
 
 .preset-pill:hover {
-  background-color: #dbeafe;
+  background-color: #e0e7ff;
 }
 
 .preset-pill.active {
-  background-color: #312e81;
+  background-color: #6366f1;
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(49, 46, 129, 0.3);
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
 }
 
 /* KPI Summary Cards Grid */
@@ -321,7 +321,7 @@
 
 /* Highlight Card Style */
 .kpi-card.highlight-purple {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
   border: none;
   color: #ffffff;
 }
@@ -407,7 +407,7 @@
   border-radius: 50%;
   border: none;
   background-color: #eff6ff;
-  color: #3b82f6;
+  color: #6366f1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -416,7 +416,7 @@
 }
 
 .icon-action-btn:hover {
-  background-color: #dbeafe;
+  background-color: #e0e7ff;
 }
 
 /* SVG Chart Scroll Wrapper */
@@ -432,7 +432,7 @@
 }
 
 .x-time-label {
-  fill: #a1a1aa;
+  fill: #64748b;
   font-size: 11px;
   font-weight: 600;
   font-family: inherit;
@@ -486,7 +486,7 @@
   flex-shrink: 0;
 }
 
-.legend-item .dot.sales { background-color: #4f46e5; }
+.legend-item .dot.sales { background-color: #6366f1; }
 .legend-item .dot.profit { background-color: #10b981; }
 .legend-item .dot.cogs { background-color: #f59e0b; }
 .legend-item .dot.ingused { background-color: #ec4899; }
@@ -506,7 +506,7 @@
   width: 32px;
   height: 32px;
   border: 3px solid #e0e7ff;
-  border-top-color: #4f46e5;
+  border-top-color: #6366f1;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin: 0 auto 12px auto;

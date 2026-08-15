@@ -37,11 +37,11 @@ const Analytics: React.FC = () => {
   // Filter Preset Pill Selection ('all' | 'profit' | 'sales' | 'cogs' | 'ingused')
   const [metricPreset, setMetricPreset] = useState<'all' | 'profit' | 'sales' | 'cogs' | 'ingused'>('all');
 
-  // Multi-Series Line Visibility Toggles
+  // Multi-Series Line Visibility Toggles (Default: All 4 enabled when All Metrics is active)
   const [showSales, setShowSales] = useState(true);
   const [showProfit, setShowProfit] = useState(true);
-  const [showCogs, setShowCogs] = useState(false);
-  const [showIngUsed, setShowIngUsed] = useState(false);
+  const [showCogs, setShowCogs] = useState(true);
+  const [showIngUsed, setShowIngUsed] = useState(true);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -97,14 +97,14 @@ const Analytics: React.FC = () => {
     }
   };
 
-  // Handle Preset Selection Pills (e.g. All Metrics, Profit/Loss, Sales, Ingredient Cost)
+  // Handle Preset Selection Pills (e.g. All Metrics, Profit/Loss, Sales, Ingredient Cost, Ingredients Used)
   const handlePresetChange = (preset: 'all' | 'profit' | 'sales' | 'cogs' | 'ingused') => {
     setMetricPreset(preset);
     if (preset === 'all') {
       setShowSales(true);
       setShowProfit(true);
-      setShowCogs(false);
-      setShowIngUsed(false);
+      setShowCogs(true);
+      setShowIngUsed(true);
     } else if (preset === 'profit') {
       setShowSales(false);
       setShowProfit(true);
@@ -126,6 +126,18 @@ const Analytics: React.FC = () => {
       setShowCogs(false);
       setShowIngUsed(true);
     }
+  };
+
+  // Format YYYY-MM-DD to simple "09 Aug" format
+  const formatDateLabel = (dateStr: string) => {
+    if (!dateStr) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      const [, m, d] = dateStr.split('-');
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const monthIdx = parseInt(m, 10) - 1;
+      return `${parseInt(d, 10)} ${months[monthIdx] || m}`;
+    }
+    return dateStr;
   };
 
   // Smooth Cubic Bezier Spline Curve Builder
@@ -459,8 +471,8 @@ const Analytics: React.FC = () => {
                   <defs>
                     {/* Indigo Fading Gradient for Sales Wave */}
                     <linearGradient id="salesWaveGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#4f46e5" stopOpacity="0.25" />
-                      <stop offset="100%" stopColor="#4f46e5" stopOpacity="0.0" />
+                      <stop offset="0%" stopColor="#6366f1" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="#6366f1" stopOpacity="0.0" />
                     </linearGradient>
 
                     {/* Emerald Fading Gradient for Profit Wave */}
@@ -494,9 +506,9 @@ const Analytics: React.FC = () => {
                   {showSales && pointsSales.length > 0 && (
                     <g>
                       <path d={buildSmoothAreaPath(pointsSales, baselineY)} fill="url(#salesWaveGrad)" />
-                      <path d={buildSmoothPath(pointsSales)} fill="none" stroke="#4f46e5" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d={buildSmoothPath(pointsSales)} fill="none" stroke="#6366f1" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
                       {pointsSales.map(p => (
-                        <circle key={`sp-${p.x}`} cx={p.x} cy={p.y} r="4" fill="#ffffff" stroke="#4f46e5" strokeWidth="2.5" />
+                        <circle key={`sp-${p.x}`} cx={p.x} cy={p.y} r="4" fill="#ffffff" stroke="#6366f1" strokeWidth="2.5" />
                       ))}
                     </g>
                   )}
@@ -540,7 +552,7 @@ const Analytics: React.FC = () => {
                     const x = 50 + i * spacing;
                     return (
                       <text key={`xlabel-${i}`} x={x} y={baselineY + 22} textAnchor="middle" className="x-time-label">
-                        {d.date}
+                        {formatDateLabel(d.date)}
                       </text>
                     );
                   })}
