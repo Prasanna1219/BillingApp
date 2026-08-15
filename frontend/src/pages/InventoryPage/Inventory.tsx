@@ -200,6 +200,10 @@ const Inventory = () => {
   const [stockFilter, setStockFilter] = useState<'all' | 'in_stock' | 'low_stock' | 'depleted' | 'adjustments'>('all');
   const [adjustments, setAdjustments] = useState<StockAdjustment[]>([]);
 
+  // Products Search & Filter State
+  const [productSearchQuery, setProductSearchQuery] = useState('');
+  const [productTaxFilter, setProductTaxFilter] = useState<'all' | '0' | '5' | '12' | '18' | '28'>('all');
+
   // Log Waste & Batch Usage Modal State
   const [wasteModal, setWasteModal] = useState<{
     show: boolean;
@@ -633,55 +637,177 @@ const Inventory = () => {
             
             {/* TAB 1: PRODUCTS */}
             {activeTab === 'products' && (
-              items.length === 0 ? (
-                <div className="empty-state">
-                  <div className="empty-icon-circle">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" className="empty-svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                    </svg>
-                  </div>
-                  <h3>No items listed</h3>
-                  <p>Create products like Vadai or Dosa to start selling them on your billing screen.</p>
-                  <button onClick={() => handleOpenProductModal('add')} className="start-btn">
-                    Add Your First Item
-                  </button>
-                </div>
-              ) : (
-                <div className="items-list">
-                  {items.map((item) => (
-                    <div key={item.id} className="item-card flex-col-card">
-                      
-                      {/* Top Row: Name (left), Price (right) */}
-                      <div className="item-card-row-top">
-                        <span className="item-name">{item.name}</span>
-                        <span className="item-price">₹{parseFloat(String(item.sales_price)).toFixed(2)}</span>
-                      </div>
-
-                      {/* Bottom Row: Badges (left), Actions (right) */}
-                      <div className="item-card-row-bottom">
-                        <div className="item-card-meta-left">
-                          <span className="tax-badge">GST {parseFloat(String(item.tax_percentage))}%</span>
-                          <span className="stock-label">Stock: {item.current_stock}</span>
-                        </div>
-                        
-                        <div className="item-card-actions-right">
-                          <button onClick={() => handleOpenProductModal('edit', item)} className="item-card-btn edit" title="Edit">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.83 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
-                            </svg>
-                          </button>
-                          <button onClick={() => handleDeleteProduct(item.id)} className="item-card-btn delete" title="Delete">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-
+              <div className="products-view">
+                
+                {/* 1. Products Summary Metrics Strip */}
+                <div className="metrics-strip">
+                  <div className="metric-card">
+                    <div className="metric-icon purple">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                      </svg>
                     </div>
-                  ))}
+                    <div className="metric-info">
+                      <span className="metric-value">{items.length}</span>
+                      <span className="metric-label">Total Products</span>
+                    </div>
+                  </div>
+
+                  <div className="metric-card">
+                    <div className="metric-icon green">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-6h6m4.5 0a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z" />
+                      </svg>
+                    </div>
+                    <div className="metric-info">
+                      <span className="metric-value">
+                        ₹{(items.reduce((acc, curr) => acc + parseFloat(String(curr.sales_price)), 0) / (items.length || 1)).toFixed(2)}
+                      </span>
+                      <span className="metric-label">Avg Price</span>
+                    </div>
+                  </div>
+
+                  <div className="metric-card">
+                    <div className="metric-icon amber">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6z" />
+                      </svg>
+                    </div>
+                    <div className="metric-info">
+                      <span className="metric-value">
+                        {items.reduce((acc, curr) => acc + (curr.current_stock || 0), 0)}
+                      </span>
+                      <span className="metric-label">In Stock</span>
+                    </div>
+                  </div>
+
+                  <div className="metric-card">
+                    <div className="metric-icon rose">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+                      </svg>
+                    </div>
+                    <div className="metric-info">
+                      <span className="metric-value">{Array.from(new Set(items.map(i => i.tax_percentage))).length}</span>
+                      <span className="metric-label">Tax Slabs</span>
+                    </div>
+                  </div>
                 </div>
-              )
+
+                {/* 2. Products Search & Filter Toolbar */}
+                <div className="inventory-toolbar">
+                  <div className="search-input-wrapper">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                    </svg>
+                    <input
+                      type="text"
+                      value={productSearchQuery}
+                      onChange={(e) => setProductSearchQuery(e.target.value)}
+                      placeholder="Search products by name..."
+                      className="search-input-field"
+                    />
+                  </div>
+
+                  <div className="filter-pills-row">
+                    <button
+                      className={`filter-pill ${productTaxFilter === 'all' ? 'active' : ''}`}
+                      onClick={() => setProductTaxFilter('all')}
+                    >
+                      All ({items.length})
+                    </button>
+                    <button
+                      className={`filter-pill ${productTaxFilter === '0' ? 'active' : ''}`}
+                      onClick={() => setProductTaxFilter('0')}
+                    >
+                      Exempt (0%)
+                    </button>
+                    <button
+                      className={`filter-pill ${productTaxFilter === '5' ? 'active' : ''}`}
+                      onClick={() => setProductTaxFilter('5')}
+                    >
+                      GST 5%
+                    </button>
+                    <button
+                      className={`filter-pill ${productTaxFilter === '12' ? 'active' : ''}`}
+                      onClick={() => setProductTaxFilter('12')}
+                    >
+                      GST 12%
+                    </button>
+                    <button
+                      className={`filter-pill ${productTaxFilter === '18' ? 'active' : ''}`}
+                      onClick={() => setProductTaxFilter('18')}
+                    >
+                      GST 18%
+                    </button>
+                    <button
+                      className={`filter-pill ${productTaxFilter === '28' ? 'active' : ''}`}
+                      onClick={() => setProductTaxFilter('28')}
+                    >
+                      GST 28%
+                    </button>
+                  </div>
+                </div>
+
+                {items.length === 0 ? (
+                  <div className="empty-state">
+                    <div className="empty-icon-circle">
+                      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" className="empty-svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                      </svg>
+                    </div>
+                    <h3>No items listed</h3>
+                    <p>Create products like Vadai or Dosa to start selling them on your billing screen.</p>
+                    <button onClick={() => handleOpenProductModal('add')} className="start-btn">
+                      Add Your First Item
+                    </button>
+                  </div>
+                ) : (
+                  <div className="items-list">
+                    {items
+                      .filter((item) => {
+                        const matchesSearch = item.name.toLowerCase().includes(productSearchQuery.toLowerCase());
+                        if (!matchesSearch) return false;
+                        if (productTaxFilter === 'all') return true;
+                        const taxVal = parseFloat(String(item.tax_percentage)).toFixed(0);
+                        return taxVal === productTaxFilter;
+                      })
+                      .map((item) => (
+                        <div key={item.id} className="item-card flex-col-card">
+                          
+                          {/* Top Row: Name, Price */}
+                          <div className="item-card-row-top">
+                            <span className="item-name">{item.name}</span>
+                            <span className="item-price">₹{parseFloat(String(item.sales_price)).toFixed(2)}</span>
+                          </div>
+
+                          {/* Bottom Row: Badges & Actions */}
+                          <div className="item-card-row-bottom">
+                            <div className="item-card-meta-left">
+                              <span className="tax-badge">GST {parseFloat(String(item.tax_percentage))}%</span>
+                              <span className="stock-label">Stock: {item.current_stock}</span>
+                            </div>
+                            
+                            <div className="item-card-actions-right">
+                              <button onClick={() => handleOpenProductModal('edit', item)} className="item-card-btn edit" title="Edit">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.83 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                                </svg>
+                              </button>
+                              <button onClick={() => handleDeleteProduct(item.id)} className="item-card-btn delete" title="Delete">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+
+                        </div>
+                      ))}
+                  </div>
+                )}
+
+              </div>
             )}
 
             {/* TAB 2: INGREDIENTS */}
@@ -963,14 +1089,13 @@ const Inventory = () => {
                 {items.length === 0 ? (
                   <p className="no-data-alert">Please add products first before configuring recipes.</p>
                 ) : (
-                  <div className="recipe-grid">
-                    {/* Left Column: Product selector */}
-                    <div className="product-selector-list">
-                      <h4>Select Dish</h4>
+                  <>
+                    {/* Mobile Dish Selector Pills (Shown on mobile screens only) */}
+                    <div className="mobile-dish-selector-pills">
                       {items.map(item => (
-                        <button 
-                          key={item.id} 
-                          className={`product-select-btn ${selectedProductId === item.id ? 'selected' : ''}`}
+                        <button
+                          key={item.id}
+                          className={`filter-pill ${selectedProductId === item.id ? 'active' : ''}`}
                           onClick={() => {
                             setSelectedProductId(item.id);
                             setRecipeError('');
@@ -980,6 +1105,24 @@ const Inventory = () => {
                         </button>
                       ))}
                     </div>
+
+                    <div className="recipe-grid">
+                      {/* Left Column: Product selector (PC / Desktop View) */}
+                      <div className="product-selector-list">
+                        <h4>Select Dish</h4>
+                        {items.map(item => (
+                          <button 
+                            key={item.id} 
+                            className={`product-select-btn ${selectedProductId === item.id ? 'selected' : ''}`}
+                            onClick={() => {
+                              setSelectedProductId(item.id);
+                              setRecipeError('');
+                            }}
+                          >
+                            {item.name}
+                          </button>
+                        ))}
+                      </div>
 
                     {/* Right Column: Recipe details */}
                     <div className="recipe-configurator">
@@ -1043,9 +1186,10 @@ const Inventory = () => {
                       )}
                     </div>
                   </div>
-                )}
-              </div>
-            )}
+                </>
+              )}
+            </div>
+          )}
 
           </div>
         )}

@@ -328,6 +328,32 @@
   flex-grow: 1;
 }
 
+/* Mobile Dish Selector Pills (Recipes Tab) */
+.mobile-dish-selector-pills {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+  scrollbar-width: none;
+}
+
+.mobile-dish-selector-pills::-webkit-scrollbar {
+  display: none;
+}
+
+@media (min-width: 769px) {
+  .mobile-dish-selector-pills {
+    display: none; /* Hidden on PC / Desktop */
+  }
+}
+
+@media (max-width: 768px) {
+  .product-selector-list {
+    display: none; /* Hide vertical product list on mobile since we have horizontal pills bar */
+  }
+}
+
 .recipe-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -335,7 +361,7 @@
   flex-grow: 1;
 }
 
-@media (min-width: 576px) {
+@media (min-width: 769px) {
   .recipe-grid {
     grid-template-columns: 180px 1fr;
   }
@@ -345,18 +371,10 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  border-right: none;
-  padding-right: 0;
-  max-height: 200px;
+  border-right: 1px solid #e2e8f0;
+  padding-right: 12px;
+  max-height: 100%;
   overflow-y: auto;
-}
-
-@media (min-width: 576px) {
-  .product-selector-list {
-    border-right: 1px solid #e2e8f0;
-    padding-right: 12px;
-    max-height: 100%;
-  }
 }
 
 .product-selector-list h4, .recipe-configurator h4 {
