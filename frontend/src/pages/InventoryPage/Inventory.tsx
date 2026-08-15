@@ -721,18 +721,6 @@ const Inventory = () => {
                       <span className="metric-label">In Stock</span>
                     </div>
                   </div>
-
-                  <div className="metric-card">
-                    <div className="metric-icon rose">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
-                      </svg>
-                    </div>
-                    <div className="metric-info">
-                      <span className="metric-value">{Array.from(new Set(items.map(i => i.tax_percentage))).length}</span>
-                      <span className="metric-label">Tax Slabs</span>
-                    </div>
-                  </div>
                 </div>
 
                 {/* 2. Products Search & Filter Toolbar */}
