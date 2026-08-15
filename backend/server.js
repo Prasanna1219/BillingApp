@@ -614,24 +614,75 @@ app.get('/api/reports/dashboard/:businessId', async (req, res) => {
   }
 });
 
-// Analytics Endpoint for Date Ranges
+// Analytics Endpoint for Date Ranges with Time Grouping & Multi-Metric Support
 app.get('/api/reports/analytics/:businessId', async (req, res) => {
   const { businessId } = req.params;
-  const { startDate, endDate } = req.query;
+  const { startDate, endDate, groupBy: reqGroupBy } = req.query;
   
   if (!startDate || !endDate) {
     return res.status(400).json({ status: 'error', message: 'Missing startDate or endDate query parameters' });
   }
 
   try {
+    const isSingleDay = startDate === endDate;
+    const groupBy = reqGroupBy || (isSingleDay ? 'hourly' : 'daily');
+
+    let dateFormat;
+    let dateGroup;
+
+    if (groupBy === 'hourly') {
+      dateFormat = "DATE_FORMAT(o.created_at, '%H:00')";
+      dateGroup = "DATE_FORMAT(o.created_at, '%H:00')";
+    } else if (groupBy === 'weekly') {
+      dateFormat = "CONCAT('Wk ', WEEK(o.created_at, 1), ' (', DATE_FORMAT(o.created_at, '%b'), ')')";
+      dateGroup = "YEARWEEK(o.created_at, 1)";
+    } else if (groupBy === 'monthly') {
+      dateFormat = "DATE_FORMAT(o.created_at, '%b %Y')";
+      dateGroup = "DATE_FORMAT(o.created_at, '%Y-%m')";
+    } else {
+      dateFormat = "DATE_FORMAT(o.created_at, '%Y-%m-%d')";
+      dateGroup = "DATE_FORMAT(o.created_at, '%Y-%m-%d')";
+    }
+
     const [chartResult] = await db.query(
-      `SELECT DATE_FORMAT(created_at, '%Y-%m-%d') as date, IFNULL(SUM(total_amount), 0) as total 
-       FROM orders 
-       WHERE business_id = ? AND DATE(created_at) >= ? AND DATE(created_at) <= ?
-       GROUP BY DATE_FORMAT(created_at, '%Y-%m-%d') 
-       ORDER BY date`,
+      `SELECT 
+         ${dateFormat} as label,
+         ${dateGroup} as group_key,
+         IFNULL(SUM(o.total_amount), 0) as sales,
+         IFNULL(SUM(
+           (SELECT IFNULL(SUM(oi.quantity * r.quantity_needed * (ing.purchase_cost / GREATEST(ing.quantity_purchased, 0.001))), 0)
+            FROM order_items oi
+            JOIN recipes r ON oi.item_id = r.item_id
+            JOIN ingredients ing ON r.ingredient_id = ing.id
+            WHERE oi.order_id = o.id)
+         ), 0) as cogs,
+         IFNULL(SUM(
+           (SELECT IFNULL(SUM(oi.quantity * r.quantity_needed), 0)
+            FROM order_items oi
+            JOIN recipes r ON oi.item_id = r.item_id
+            WHERE oi.order_id = o.id)
+         ), 0) as ingredients_used
+       FROM orders o
+       WHERE o.business_id = ? AND DATE(o.created_at) >= ? AND DATE(o.created_at) <= ?
+       GROUP BY label, group_key
+       ORDER BY group_key ASC`,
       [businessId, startDate, endDate]
     );
+
+    const chartData = chartResult.map(item => {
+      const sales = parseFloat(item.sales) || 0;
+      const cogs = parseFloat(item.cogs) || 0;
+      const profit = sales - cogs;
+      const ingredients_used = parseFloat(item.ingredients_used) || 0;
+      return {
+        date: item.label,
+        sales: sales.toFixed(2),
+        cogs: cogs.toFixed(2),
+        profit: profit.toFixed(2),
+        ingredients_used: ingredients_used.toFixed(2),
+        total: sales.toFixed(2)
+      };
+    });
 
     const [summaryResult] = await db.query(
       `SELECT COUNT(*) as count, IFNULL(SUM(total_amount), 0) as total
@@ -650,11 +701,13 @@ app.get('/api/reports/analytics/:businessId', async (req, res) => {
 
     res.json({
       status: 'success',
-      chartData: chartResult,
+      groupBy,
+      chartData,
       summary: summaryResult[0],
       splits: splitsResult
     });
   } catch (error) {
+    console.error('Analytics Error:', error);
     res.status(500).json({ status: 'error', message: 'Failed to retrieve analytics', error: error.message });
   }
 });

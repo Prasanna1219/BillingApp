@@ -82,7 +82,7 @@
   gap: 12px;
 }
 
-@media (min-width: 769px) {
+@media (min-width: 990px) {
   .analytics-controls {
     flex-direction: row;
     justify-content: space-between;
@@ -91,25 +91,35 @@
   }
 }
 
-/* Quick Range Pills Strip */
-.quick-ranges-strip {
+/* Quick Range & Grouping Strips */
+.quick-ranges-strip, .group-by-selector-strip {
   display: flex;
+  align-items: center;
   gap: 8px;
   overflow-x: auto;
   scrollbar-width: none;
 }
 
-.quick-ranges-strip::-webkit-scrollbar {
+.quick-ranges-strip::-webkit-scrollbar, .group-by-selector-strip::-webkit-scrollbar {
   display: none;
 }
 
-.range-pill {
+.granularity-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.range-pill, .granularity-pill {
   border: 1px solid #cbd5e1;
   background-color: #f8fafc;
   color: #475569;
-  padding: 8px 14px;
+  padding: 7px 13px;
   border-radius: 20px;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -121,6 +131,12 @@
   border-color: #6366f1;
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+}
+
+.granularity-pill.active {
+  background-color: #0f172a;
+  border-color: #0f172a;
+  color: #ffffff;
 }
 
 /* Date Pickers Grid */
@@ -317,7 +333,7 @@
   color: #ffffff;
 }
 
-/* Revenue Chart Card */
+/* Multi-Metric Graph Card */
 .analytics-chart-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -334,11 +350,17 @@
 
 .chart-card-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 12px;
   margin-bottom: 16px;
-  flex-wrap: wrap;
-  gap: 8px;
+}
+
+@media (min-width: 769px) {
+  .chart-card-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
 }
 
 .chart-card-header h3 {
@@ -349,14 +371,80 @@
 }
 
 .chart-range-badge {
+  display: inline-block;
   font-size: 0.75rem;
   font-weight: 600;
   color: #64748b;
   background: #f1f5f9;
-  padding: 4px 10px;
-  border-radius: 8px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-top: 4px;
 }
 
+/* Metric Legend Toggles (User switches lines ON/OFF) */
+.metric-legend-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.legend-toggle-pill {
+  border: 1.5px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #64748b;
+  padding: 6px 12px;
+  border-radius: 18px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  opacity: 0.6;
+}
+
+.legend-toggle-pill.active {
+  opacity: 1;
+}
+
+.legend-toggle-pill.sales.active {
+  border-color: #6366f1;
+  background-color: #e0e7ff;
+  color: #4338ca;
+}
+
+.legend-toggle-pill.profit.active {
+  border-color: #10b981;
+  background-color: #d1fae5;
+  color: #047857;
+}
+
+.legend-toggle-pill.cogs.active {
+  border-color: #f59e0b;
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.legend-toggle-pill.ingused.active {
+  border-color: #ec4899;
+  background-color: #fce7f3;
+  color: #be185d;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.legend-dot.sales { background-color: #6366f1; }
+.legend-dot.profit { background-color: #10b981; }
+.legend-dot.cogs { background-color: #f59e0b; }
+.legend-dot.ingused { background-color: #ec4899; }
+
+/* SVG Graph Elements */
 .chart-scroll-wrapper {
   overflow-x: auto;
   overflow-y: hidden;
@@ -381,10 +469,14 @@
 }
 
 .chart-hover-val {
-  fill: #4338ca;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 800;
 }
+
+.chart-hover-val.sales { fill: #4338ca; }
+.chart-hover-val.profit { fill: #047857; }
+.chart-hover-val.cogs { fill: #b45309; }
+.chart-hover-val.ingused { fill: #be185d; }
 
 .empty-chart {
   text-align: center;
