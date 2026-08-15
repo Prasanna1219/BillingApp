@@ -52,7 +52,10 @@ const Onboarding = () => {
   const [businessName, setBusinessName] = useState('');
   const [businessType, setBusinessType] = useState('Retail');
   const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
+  const [street, setStreet] = useState('');
+  const [area, setArea] = useState('');
+  const [city, setCity] = useState('');
+  const [pincode, setPincode] = useState('');
   const [upiId, setUpiId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -111,8 +114,16 @@ const Onboarding = () => {
       setError('Please enter a valid 10-digit mobile number.');
       return;
     }
-    if (!address.trim()) {
-      setError('Outlet Address is required.');
+    
+    // Construct full formatted address
+    const fullAddress = [
+      street.trim(),
+      area.trim(),
+      city.trim() ? (pincode.trim() ? `${city.trim()} - ${pincode.trim()}` : city.trim()) : pincode.trim()
+    ].filter(Boolean).join(', ');
+
+    if (!fullAddress.trim()) {
+      setError('Please enter your store address details.');
       return;
     }
 
@@ -136,7 +147,7 @@ const Onboarding = () => {
           business_name: businessName,
           business_type: businessType,
           phone_number: phone,
-          outlet_address: address,
+          outlet_address: fullAddress,
           upi_id: upiId.trim(),
         }),
       });
@@ -154,7 +165,7 @@ const Onboarding = () => {
         business_name: businessName,
         business_type: businessType,
         phone_number: phone,
-        outlet_address: address,
+        outlet_address: fullAddress,
         upi_id: upiId.trim(),
       };
       localStorage.setItem('session_business', JSON.stringify(businessSession));
@@ -251,19 +262,75 @@ const Onboarding = () => {
               </div>
             </div>
 
+            {/* Multi-field Structured Address */}
             <div className="form-group">
-              <label htmlFor="business-address">Outlet Address</label>
-              <textarea
-                id="business-address"
-                value={address}
+              <label htmlFor="street-address">Building / Flat / Street Name</label>
+              <input
+                id="street-address"
+                type="text"
+                value={street}
                 onChange={(e) => {
-                  setAddress(e.target.value);
+                  setStreet(e.target.value);
                   setError('');
                 }}
-                placeholder="Enter complete store address"
+                placeholder="e.g. Shop #12, Ground Floor, MG Road"
                 className="input-field"
                 disabled={loading}
               />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="area-address">Area / Locality / Landmark</label>
+              <input
+                id="area-address"
+                type="text"
+                value={area}
+                onChange={(e) => {
+                  setArea(e.target.value);
+                  setError('');
+                }}
+                placeholder="e.g. Indiranagar, Near Metro Station"
+                className="input-field"
+                disabled={loading}
+              />
+            </div>
+
+            <div className="form-row-2col">
+              <div className="form-group">
+                <label htmlFor="city-address">City / Town</label>
+                <input
+                  id="city-address"
+                  type="text"
+                  value={city}
+                  onChange={(e) => {
+                    setCity(e.target.value);
+                    setError('');
+                  }}
+                  placeholder="e.g. Bengaluru"
+                  className="input-field"
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="pincode-address">Pincode</label>
+                <input
+                  id="pincode-address"
+                  type="text"
+                  inputMode="numeric"
+                  value={pincode}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    if (val.length <= 6) {
+                      setPincode(val);
+                      setError('');
+                    }
+                  }}
+                  placeholder="e.g. 560038"
+                  className="input-field"
+                  disabled={loading}
+                />
+              </div>
             </div>
 
             <div className="form-group">
