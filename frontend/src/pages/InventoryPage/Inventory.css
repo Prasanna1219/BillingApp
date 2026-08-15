@@ -542,32 +542,77 @@
   bottom: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(15, 23, 42, 0.4);
+  height: 100dvh;
+  background-color: rgba(15, 23, 42, 0.5);
   backdrop-filter: blur(4px);
   z-index: 1000;
   display: flex;
-  align-items: flex-end; /* Slides up from bottom */
+  align-items: flex-end;
   justify-content: center;
+  box-sizing: border-box;
 }
 
+/* Modal Content Container (Mobile: Full-Screen / High Sheet) */
+.modal-container {
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  background-color: #ffffff;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  padding: 24px 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  overflow: hidden;
+}
+
+.modal-container form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.modal-container form::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-container form::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 3px;
+}
+
+/* Desktop & Laptop Screen Optimization (min-width: 769px) */
 @media (min-width: 769px) {
   .modal-backdrop {
-    border-radius: 0;
     align-items: center;
+    padding: 24px;
+    overflow-y: auto;
+  }
+
+  .modal-container {
+    max-width: 520px;
+    height: auto;
+    max-height: 85vh;
+    border-radius: 28px;
+    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.16);
+    padding: 28px 24px;
+    animation: modalScaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 }
 
-/* Modal Content Container */
-.modal-container {
-  width: 100%;
-  background-color: #ffffff;
-  border-top-left-radius: 28px;
-  border-top-right-radius: 28px;
-  padding: 28px 24px;
-  box-sizing: border-box;
-  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  max-height: 90%;
-  overflow-y: auto;
+@keyframes modalScaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes slideUp {
