@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Analytics.css';
 
@@ -37,7 +37,7 @@ const Analytics: React.FC = () => {
   // Filter Preset Pill Selection ('all' | 'profit' | 'sales' | 'cogs' | 'ingused')
   const [metricPreset, setMetricPreset] = useState<'all' | 'profit' | 'sales' | 'cogs' | 'ingused'>('all');
 
-  // Multi-Series Line Visibility Toggles (Default: All 4 enabled when All Metrics is active)
+  // Multi-Series Line Visibility Toggles
   const [showSales, setShowSales] = useState(true);
   const [showProfit, setShowProfit] = useState(true);
   const [showCogs, setShowCogs] = useState(true);
@@ -46,6 +46,23 @@ const Analytics: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [data, setData] = useState<AnalyticsData | null>(null);
+
+  // Responsive Chart Container Width Observer
+  const chartWrapperRef = useRef<HTMLDivElement>(null);
+  const [chartContainerWidth, setChartContainerWidth] = useState(600);
+
+  useEffect(() => {
+    if (!chartWrapperRef.current) return;
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.contentRect && entry.contentRect.width > 0) {
+          setChartContainerWidth(Math.floor(entry.contentRect.width));
+        }
+      }
+    });
+    ro.observe(chartWrapperRef.current);
+    return () => ro.disconnect();
+  }, [loading]);
 
   useEffect(() => {
     const bizStr = localStorage.getItem('session_business');
@@ -97,7 +114,7 @@ const Analytics: React.FC = () => {
     }
   };
 
-  // Handle Preset Selection Pills (e.g. All Metrics, Profit/Loss, Sales, Ingredient Cost, Ingredients Used)
+  // Handle Preset Selection Pills
   const handlePresetChange = (preset: 'all' | 'profit' | 'sales' | 'cogs' | 'ingused') => {
     setMetricPreset(preset);
     if (preset === 'all') {
@@ -169,9 +186,11 @@ const Analytics: React.FC = () => {
     return `${lineD} L ${pts[pts.length - 1].x} ${baselineY} L ${pts[0].x} ${baselineY} Z`;
   };
 
-  // Multi-Series Graph Calculation
-  const baselineY = 165;
-  const chartHeight = 220;
+  // Pixel-Perfect Dynamic Coordinate Calculations
+  const chartHeight = 240;
+  const baselineY = 190;
+  const topPadding = 20;
+
   let pointsSales: Array<{ x: number; y: number; val: number; label: string }> = [];
   let pointsProfit: Array<{ x: number; y: number; val: number; label: string }> = [];
   let pointsCogs: Array<{ x: number; y: number; val: number; label: string }> = [];
@@ -190,31 +209,35 @@ const Analytics: React.FC = () => {
     });
 
     maxVal = Math.max(...allVals, 100);
+    
+    // Pixel-perfect dynamic spacing based on real container width
+    const minPaddingX = 24;
+    const availableWidth = Math.max(chartContainerWidth - minPaddingX * 2, 280);
     const numPoints = Math.max(data.chartData.length - 1, 1);
-    const spacing = 750 / numPoints;
+    const spacing = availableWidth / numPoints;
 
     data.chartData.forEach((day, i) => {
-      const x = 25 + i * spacing;
+      const x = minPaddingX + i * spacing;
       const label = day.date;
 
       if (showSales) {
         const val = parseFloat(day.sales);
-        const y = baselineY - (val / maxVal) * 125;
+        const y = baselineY - (val / maxVal) * (baselineY - topPadding);
         pointsSales.push({ x, y, val, label });
       }
       if (showProfit) {
         const val = parseFloat(day.profit);
-        const y = baselineY - (Math.max(0, val) / maxVal) * 125;
+        const y = baselineY - (Math.max(0, val) / maxVal) * (baselineY - topPadding);
         pointsProfit.push({ x, y, val, label });
       }
       if (showCogs) {
         const val = parseFloat(day.cogs);
-        const y = baselineY - (val / maxVal) * 125;
+        const y = baselineY - (val / maxVal) * (baselineY - topPadding);
         pointsCogs.push({ x, y, val, label });
       }
       if (showIngUsed) {
         const val = parseFloat(day.ingredients_used);
-        const y = baselineY - (val / maxVal) * 125;
+        const y = baselineY - (val / maxVal) * (baselineY - topPadding);
         pointsIngUsed.push({ x, y, val, label });
       }
     });
@@ -378,10 +401,10 @@ const Analytics: React.FC = () => {
             </button>
           </div>
 
-          {/* KPI Summary Strip (2x2 Grid on Mobile) */}
+          {/* KPI Summary Strip */}
           <div className="analytics-kpi-grid">
             
-            {/* KPI 1: Total Revenue (Indigo Highlight) */}
+            {/* KPI 1: Total Revenue */}
             <div className="kpi-card highlight-purple">
               <div className="kpi-card-header">
                 <span className="kpi-card-title">Total Revenue</span>
@@ -443,7 +466,7 @@ const Analytics: React.FC = () => {
 
           </div>
 
-          {/* MAIN GRAPH CARD */}
+          {/* MAIN PERFORMANCE GRAPH CARD */}
           <div className="analytics-main-card">
             
             {/* Card Header: Title + Big Value + Trend % + Options Button */}
@@ -463,12 +486,12 @@ const Analytics: React.FC = () => {
               </button>
             </div>
 
-            {/* Smooth SVG Wave Graph */}
+            {/* Pixel-Perfect Crystal Clear Responsive SVG Wave Graph */}
             {!data || data.chartData.length === 0 ? (
               <div className="empty-chart">No sales data for selected period.</div>
             ) : (
-              <div className="chart-scroll-wrapper">
-                <svg width="100%" height={chartHeight} viewBox="0 0 800 220" className="analytics-svg-chart">
+              <div className="chart-scroll-wrapper" ref={chartWrapperRef}>
+                <svg width={chartContainerWidth} height={chartHeight} className="analytics-svg-chart">
                   <defs>
                     {/* Indigo Fading Gradient for Sales Wave */}
                     <linearGradient id="salesWaveGrad" x1="0" y1="0" x2="0" y2="1">
@@ -497,63 +520,65 @@ const Analytics: React.FC = () => {
 
                   {/* Horizontal Grid Lines */}
                   {yTicks.map((tick) => {
-                    const y = baselineY - tick * 125;
+                    const y = baselineY - tick * (baselineY - topPadding);
                     return (
-                      <line key={`ygrid-${tick}`} x1="0" y1={y} x2="800" y2={y} stroke="#f1f5f9" strokeWidth="1" />
+                      <line key={`ygrid-${tick}`} x1="0" y1={y} x2={chartContainerWidth} y2={y} stroke="#f1f5f9" strokeWidth="1" />
                     );
                   })}
 
-                  {/* 1. Sales Wave (Solid Indigo Smooth Curve + Gradient Area Fill) */}
+                  {/* 1. Sales Wave */}
                   {showSales && pointsSales.length > 0 && (
                     <g>
                       <path d={buildSmoothAreaPath(pointsSales, baselineY)} fill="url(#salesWaveGrad)" />
-                      <path d={buildSmoothPath(pointsSales)} fill="none" stroke="#6366f1" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d={buildSmoothPath(pointsSales)} fill="none" stroke="#6366f1" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
                       {pointsSales.map(p => (
-                        <circle key={`sp-${p.x}`} cx={p.x} cy={p.y} r="4" fill="#ffffff" stroke="#6366f1" strokeWidth="2.5" />
+                        <circle key={`sp-${p.x}`} cx={p.x} cy={p.y} r="4.5" fill="#ffffff" stroke="#6366f1" strokeWidth="2.5" />
                       ))}
                     </g>
                   )}
 
-                  {/* 2. Profit Wave (Dotted Green Smooth Curve + Gradient Area Fill) */}
+                  {/* 2. Profit Wave */}
                   {showProfit && pointsProfit.length > 0 && (
                     <g>
                       <path d={buildSmoothAreaPath(pointsProfit, baselineY)} fill="url(#profitWaveGrad)" />
-                      <path d={buildSmoothPath(pointsProfit)} fill="none" stroke="#10b981" strokeWidth="2.8" strokeDasharray="3 3" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d={buildSmoothPath(pointsProfit)} fill="none" stroke="#10b981" strokeWidth="2.5" strokeDasharray="4 3" strokeLinecap="round" strokeLinejoin="round" />
                       {pointsProfit.map(p => (
-                        <circle key={`pp-${p.x}`} cx={p.x} cy={p.y} r="4" fill="#ffffff" stroke="#10b981" strokeWidth="2.5" />
+                        <circle key={`pp-${p.x}`} cx={p.x} cy={p.y} r="4.5" fill="#ffffff" stroke="#10b981" strokeWidth="2.5" />
                       ))}
                     </g>
                   )}
 
-                  {/* 3. Ingredient Cost Wave (Amber Line) */}
+                  {/* 3. Ingredient Cost Wave */}
                   {showCogs && pointsCogs.length > 0 && (
                     <g>
                       <path d={buildSmoothAreaPath(pointsCogs, baselineY)} fill="url(#cogsWaveGrad)" />
                       <path d={buildSmoothPath(pointsCogs)} fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                       {pointsCogs.map(p => (
-                        <circle key={`cp-${p.x}`} cx={p.x} cy={p.y} r="3.5" fill="#ffffff" stroke="#f59e0b" strokeWidth="2" />
+                        <circle key={`cp-${p.x}`} cx={p.x} cy={p.y} r="4" fill="#ffffff" stroke="#f59e0b" strokeWidth="2" />
                       ))}
                     </g>
                   )}
 
-                  {/* 4. Ingredients Used Wave (Pink Line) */}
+                  {/* 4. Ingredients Used Wave */}
                   {showIngUsed && pointsIngUsed.length > 0 && (
                     <g>
                       <path d={buildSmoothAreaPath(pointsIngUsed, baselineY)} fill="url(#ingWaveGrad)" />
                       <path d={buildSmoothPath(pointsIngUsed)} fill="none" stroke="#ec4899" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                       {pointsIngUsed.map(p => (
-                        <circle key={`ip-${p.x}`} cx={p.x} cy={p.y} r="3.5" fill="#ffffff" stroke="#ec4899" strokeWidth="2" />
+                        <circle key={`ip-${p.x}`} cx={p.x} cy={p.y} r="4" fill="#ffffff" stroke="#ec4899" strokeWidth="2" />
                       ))}
                     </g>
                   )}
 
-                  {/* X Axis Time Labels Centered Below Waves */}
+                  {/* X Axis Time Labels */}
                   {data.chartData.map((d, i) => {
+                    const minPaddingX = 24;
+                    const availableWidth = Math.max(chartContainerWidth - minPaddingX * 2, 280);
                     const numPoints = Math.max(data.chartData.length - 1, 1);
-                    const spacing = 750 / numPoints;
-                    const x = 25 + i * spacing;
+                    const spacing = availableWidth / numPoints;
+                    const x = minPaddingX + i * spacing;
                     return (
-                      <text key={`xlabel-${i}`} x={x} y={baselineY + 22} textAnchor="middle" className="x-time-label">
+                      <text key={`xlabel-${i}`} x={x} y={baselineY + 24} textAnchor="middle" className="x-time-label">
                         {formatDateLabel(d.date)}
                       </text>
                     );
@@ -562,7 +587,7 @@ const Analytics: React.FC = () => {
               </div>
             )}
 
-            {/* Bottom Color Legend Grid (Mobile Responsive 2-Column Layout) */}
+            {/* Bottom Color Legend Grid */}
             <div className="bottom-centered-legend">
               <button 
                 className={`legend-item ${showSales ? 'active' : ''}`}
