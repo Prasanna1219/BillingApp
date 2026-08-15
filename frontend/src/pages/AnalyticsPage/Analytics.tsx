@@ -190,10 +190,11 @@ const Analytics: React.FC = () => {
     });
 
     maxVal = Math.max(...allVals, 100);
-    const spacing = Math.max(580 / Math.max(data.chartData.length, 1), 60);
+    const numPoints = Math.max(data.chartData.length - 1, 1);
+    const spacing = Math.max(540 / numPoints, 65);
 
     data.chartData.forEach((day, i) => {
-      const x = 50 + i * spacing;
+      const x = 24 + i * spacing;
       const label = day.date;
 
       if (showSales) {
@@ -498,7 +499,7 @@ const Analytics: React.FC = () => {
                   {yTicks.map((tick) => {
                     const y = baselineY - tick * 125;
                     return (
-                      <line key={`ygrid-${tick}`} x1="45" y1={y} x2={Math.max(550, data.chartData.length * 60 + 60)} y2={y} stroke="#f1f5f9" strokeWidth="1" />
+                      <line key={`ygrid-${tick}`} x1="0" y1={y} x2={Math.max(550, (data.chartData.length - 1) * 65 + 48)} y2={y} stroke="#f1f5f9" strokeWidth="1" />
                     );
                   })}
 
@@ -548,8 +549,9 @@ const Analytics: React.FC = () => {
 
                   {/* X Axis Time Labels Centered Below Waves */}
                   {data.chartData.map((d, i) => {
-                    const spacing = Math.max(580 / Math.max(data.chartData.length, 1), 60);
-                    const x = 50 + i * spacing;
+                    const numPoints = Math.max(data.chartData.length - 1, 1);
+                    const spacing = Math.max(540 / numPoints, 65);
+                    const x = 24 + i * spacing;
                     return (
                       <text key={`xlabel-${i}`} x={x} y={baselineY + 22} textAnchor="middle" className="x-time-label">
                         {formatDateLabel(d.date)}
