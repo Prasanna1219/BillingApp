@@ -218,6 +218,7 @@ const Inventory = () => {
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const [recipeIngId, setRecipeIngId] = useState('');
   const [recipeQty, setRecipeQty] = useState('');
+  const [recipeUnit, setRecipeUnit] = useState('g');
   const [recipeError, setRecipeError] = useState('');
   const [recipeLoading, setRecipeLoading] = useState(false);
 
@@ -521,7 +522,38 @@ const Inventory = () => {
     }
   };
 
-  // Recipe Config CRUD
+  // Recipe Config CRUD & Unit Conversions
+  const getCompatibleUnits = (rawUnit: string): SelectOption[] => {
+    const normalized = (rawUnit || '').toLowerCase();
+    if (normalized === 'kg' || normalized === 'g') {
+      return [
+        { value: 'g', label: 'Grams (g)', description: '1000 g = 1 kg' },
+        { value: 'kg', label: 'Kilograms (kg)', description: '1 kg = 1000 g' }
+      ];
+    }
+    if (normalized === 'l' || normalized === 'ml') {
+      return [
+        { value: 'ml', label: 'Milliliters (ml)', description: '1000 ml = 1 L' },
+        { value: 'l', label: 'Liters (L)', description: '1 L = 1000 ml' }
+      ];
+    }
+    return [
+      { value: rawUnit, label: rawUnit, description: `Base unit (${rawUnit})` }
+    ];
+  };
+
+  const convertToBaseQuantity = (enteredQty: number, enteredUnit: string, rawUnit: string): number => {
+    const eUnit = (enteredUnit || '').toLowerCase();
+    const rUnit = (rawUnit || '').toLowerCase();
+
+    if (rUnit === 'kg' && eUnit === 'g') return enteredQty / 1000.0;
+    if (rUnit === 'g' && eUnit === 'kg') return enteredQty * 1000.0;
+    if (rUnit === 'l' && eUnit === 'ml') return enteredQty / 1000.0;
+    if (rUnit === 'ml' && eUnit === 'l') return enteredQty * 1000.0;
+
+    return enteredQty;
+  };
+
   const handleSaveRecipe = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProductId || !recipeIngId) return;
@@ -531,6 +563,14 @@ const Inventory = () => {
       setRecipeError('Please enter a valid quantity.');
       return;
     }
+
+    const selectedIng = ingredients.find(i => String(i.id) === recipeIngId);
+    if (!selectedIng) {
+      setRecipeError('Selected ingredient not found.');
+      return;
+    }
+
+    const baseQtyNeeded = convertToBaseQuantity(qtyNum, recipeUnit, selectedIng.unit);
 
     setRecipeLoading(true);
     setRecipeError('');
@@ -542,7 +582,7 @@ const Inventory = () => {
         body: JSON.stringify({
           item_id: selectedProductId,
           ingredient_id: parseInt(recipeIngId),
-          quantity_needed: qtyNum
+          quantity_needed: baseQtyNeeded
         })
       });
 
@@ -552,6 +592,7 @@ const Inventory = () => {
       setRecipeQty('');
       setRecipeIngId('');
       if (business) fetchRecipes(business.id);
+      showAlert('Ingredient linked to dish successfully!', 'success');
     } catch (err: any) {
       setRecipeError(err.message || 'Failed to save recipe mapping.');
     } finally {
@@ -1133,29 +1174,43 @@ const Inventory = () => {
                             {recipes.filter(r => r.item_id === selectedProductId).length === 0 ? (
                               <p className="no-data-sub">No ingredients mapped to this dish yet.</p>
                             ) : (
-                              recipes.filter(r => r.item_id === selectedProductId).map(recipe => (
-                                <div key={recipe.id} className="recipe-item-row">
-                                  <span>{recipe.ingredient_name}</span>
-                                  <span className="qty-tag">{recipe.quantity_needed} {recipe.unit}</span>
-                                  <button onClick={() => handleDeleteRecipe(recipe.id)} className="remove-recipe-btn" title="Remove Link">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: '14px', height: '14px' }}>
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                  </button>
-                                </div>
-                              ))
+                              recipes.filter(r => r.item_id === selectedProductId).map(recipe => {
+                                const qtyVal = parseFloat(String(recipe.quantity_needed));
+                                const rUnit = (recipe.unit || '').toLowerCase();
+                                const isGramConv = rUnit === 'kg' && qtyVal < 1;
+                                const isMlConv = rUnit === 'l' && qtyVal < 1;
+                                const displayQtyText = isGramConv
+                                  ? `${(qtyVal * 1000).toFixed(0)} g (${qtyVal} kg)`
+                                  : isMlConv
+                                  ? `${(qtyVal * 1000).toFixed(0)} ml (${qtyVal} L)`
+                                  : `${qtyVal} ${recipe.unit}`;
+
+                                return (
+                                  <div key={recipe.id} className="recipe-item-row">
+                                    <span>{recipe.ingredient_name}</span>
+                                    <span className="qty-tag">{displayQtyText}</span>
+                                    <button onClick={() => handleDeleteRecipe(recipe.id)} className="remove-recipe-btn" title="Remove Link">
+                                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: '14px', height: '14px' }}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                );
+                              })
                             )}
                           </div>
 
                           {/* Add mapping form */}
                           <form onSubmit={handleSaveRecipe} className="recipe-mapping-form">
-                            <h5>Link Ingredient</h5>
+                            <h5>Link Ingredient to Dish</h5>
+                            
                             <div className="form-group">
+                              <label>Select Ingredient</label>
                               <CustomSelect
                                 options={uniqueIngOptions.map(opt => ({
                                   value: String(opt.id),
                                   label: `${opt.name} (${opt.unit})`,
-                                  description: `Unit Cost: ₹${(parseFloat(String(opt.purchase_cost)) / parseFloat(String(opt.quantity_purchased))).toFixed(2)} / ${opt.unit}`,
+                                  description: `Purchased Unit: ₹${(parseFloat(String(opt.purchase_cost)) / parseFloat(String(opt.quantity_purchased))).toFixed(2)} / ${opt.unit}`,
                                   icon: (
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                                       <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
@@ -1163,23 +1218,68 @@ const Inventory = () => {
                                   )
                                 }))}
                                 value={recipeIngId}
-                                onChange={(val) => setRecipeIngId(val)}
+                                onChange={(val) => {
+                                  setRecipeIngId(val);
+                                  const sel = ingredients.find(i => String(i.id) === val);
+                                  if (sel) {
+                                    const opts = getCompatibleUnits(sel.unit);
+                                    setRecipeUnit(opts[0].value);
+                                  }
+                                }}
                                 placeholder="Choose ingredient to link..."
                               />
                             </div>
-                            <div className="form-group">
-                              <input 
-                                type="number" 
-                                step="0.001" 
-                                min="0" 
-                                placeholder="Qty needed (e.g. 0.05 for 50g)"
-                                value={recipeQty} 
-                                onChange={(e) => setRecipeQty(e.target.value)}
-                                className="input-field"
-                              />
-                            </div>
+
+                            {/* Quantity Needed & Unit Selection Row */}
+                            {recipeIngId && (() => {
+                              const selIng = ingredients.find(i => String(i.id) === recipeIngId);
+                              if (!selIng) return null;
+                              const unitOpts = getCompatibleUnits(selIng.unit);
+                              const parsedQty = parseFloat(recipeQty);
+                              const hasQty = !isNaN(parsedQty) && parsedQty > 0;
+                              const baseConverted = hasQty ? convertToBaseQuantity(parsedQty, recipeUnit, selIng.unit) : 0;
+
+                              return (
+                                <>
+                                  <div className="recipe-qty-unit-row" style={{ display: 'grid', gridTemplateColumns: '1fr 140px', gap: '12px' }}>
+                                    <div className="form-group">
+                                      <label>Quantity Needed per Order</label>
+                                      <input 
+                                        type="number" 
+                                        step="0.001" 
+                                        min="0" 
+                                        placeholder={`e.g. 50`}
+                                        value={recipeQty} 
+                                        onChange={(e) => setRecipeQty(e.target.value)}
+                                        className="input-field"
+                                      />
+                                    </div>
+
+                                    <div className="form-group">
+                                      <label>Recipe Unit</label>
+                                      <CustomSelect
+                                        options={unitOpts}
+                                        value={recipeUnit}
+                                        onChange={(val) => setRecipeUnit(val)}
+                                        placeholder="Unit"
+                                      />
+                                    </div>
+                                  </div>
+
+                                  {hasQty && (
+                                    <div className="unit-cost-preview-badge" style={{ marginBottom: '14px' }}>
+                                      <span className="unit-cost-label">Inventory Deduction:</span>
+                                      <span className="unit-cost-value">
+                                        {parsedQty} {recipeUnit} ({baseConverted.toFixed(3)} {selIng.unit}) / order
+                                      </span>
+                                    </div>
+                                  )}
+                                </>
+                              );
+                            })()}
+
                             {recipeError && <span className="error-text">{recipeError}</span>}
-                            <button type="submit" className="primary-button add-mapping-btn" disabled={recipeLoading}>
+                            <button type="submit" className="primary-button add-mapping-btn" disabled={recipeLoading || !recipeIngId}>
                               {recipeLoading ? 'Saving...' : 'Link to Dish'}
                             </button>
                           </form>
