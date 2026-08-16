@@ -71,6 +71,17 @@ const Analytics: React.FC = () => {
   // Single Value Metric Selection for Top 3 Vertical Bar Chart ('sales' | 'profit' | 'cogs')
   const [top3Metric, setTop3Metric] = useState<'sales' | 'profit' | 'cogs'>('sales');
 
+  // Active Clicked Product in Top 3 Vertical Bar Chart
+  const [activeTop3Product, setActiveTop3Product] = useState<{
+    item_id: number;
+    item_name: string;
+    units_sold: number;
+    sales_amount: string;
+    ingredient_cost: string;
+    profit: string;
+    rank: number;
+  } | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [data, setData] = useState<AnalyticsData | null>(null);
@@ -112,6 +123,7 @@ const Analytics: React.FC = () => {
     setLoading(true);
     setError('');
     setActivePoint(null);
+    setActiveTop3Product(null);
     try {
       const res = await fetch(`/api/reports/analytics/${businessId}?startDate=${startDate}&endDate=${endDate}&groupBy=${groupBy}`);
       const resData = await res.json();
@@ -313,7 +325,7 @@ const Analytics: React.FC = () => {
   const top3MaxVal = Math.max(...top3Products.map(getMetricValue), 100);
 
   return (
-    <div className="analytics-page" onClick={() => setActivePoint(null)}>
+    <div className="analytics-page" onClick={() => { setActivePoint(null); setActiveTop3Product(null); }}>
       
       {/* Header */}
       <div className="analytics-header">
@@ -804,7 +816,7 @@ const Analytics: React.FC = () => {
             <div className="clean-section-header">
               <div>
                 <span className="card-sub-header">Top Performers</span>
-                <h3 className="product-chart-title">Top 3 Products Vertical Bar Chart</h3>
+                <h3 className="product-chart-title">Top 3 Products Chart</h3>
               </div>
               
               {/* Single Value Metric Selector Pills */}
@@ -837,20 +849,69 @@ const Analytics: React.FC = () => {
               <div className="empty-chart">No product sales logged.</div>
             ) : (
               <div className="top3-single-vertical-wrapper">
+                
+                {/* Click Popover Card for Selected Dish */}
+                {activeTop3Product && (
+                  <div className="top3-tooltip-popover">
+                    <div className="tooltip-header">
+                      <span>#{activeTop3Product.rank} {activeTop3Product.item_name}</span>
+                      <button className="tooltip-close-btn" onClick={() => setActiveTop3Product(null)}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: '12px', height: '12px' }}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    <div className="tooltip-body">
+                      <div className="tooltip-row">
+                        <span className="dot sales"></span>
+                        <span className="tooltip-label">Sales:</span>
+                        <span className="tooltip-val">₹{parseFloat(activeTop3Product.sales_amount).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                      </div>
+                      <div className="tooltip-row">
+                        <span className="dot profit"></span>
+                        <span className="tooltip-label">Net Profit:</span>
+                        <span className="tooltip-val">₹{parseFloat(activeTop3Product.profit).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                      </div>
+                      <div className="tooltip-row">
+                        <span className="dot cogs"></span>
+                        <span className="tooltip-label">Food Cost:</span>
+                        <span className="tooltip-val">₹{parseFloat(activeTop3Product.ingredient_cost).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                      </div>
+                      <div className="tooltip-row">
+                        <span className="dot ingused"></span>
+                        <span className="tooltip-label">Quantity:</span>
+                        <span className="tooltip-val">{activeTop3Product.units_sold} units sold</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="top3-single-vertical-container">
                   {top3Products.map((prod, idx) => {
                     const val = getMetricValue(prod);
 
                     const maxHeightPx = 150;
                     const barH = (val / top3MaxVal) * maxHeightPx;
+                    const isSelected = activeTop3Product?.item_id === prod.item_id;
 
                     return (
-                      <div key={prod.item_id} className="top3-single-column">
+                      <div 
+                        key={prod.item_id} 
+                        className={`top3-single-column ${isSelected ? 'selected' : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveTop3Product({
+                            ...prod,
+                            rank: idx + 1
+                          });
+                        }}
+                      >
                         
                         {/* Single Vertical Column Bar */}
                         <div className="v-bar-single-track">
                           <div 
-                            className={`v-bar-single-fill ${top3Metric}`} 
+                            className={`v-bar-single-fill ${top3Metric} ${isSelected ? 'active-halo' : ''}`} 
                             style={{ height: `${Math.max(barH, 14)}px` }} 
                             title={`${top3Metric.toUpperCase()}: ₹${val.toFixed(2)}`}
                           >

@@ -694,11 +694,26 @@
   background-color: #f8fafc;
   border: 1px solid #f1f5f9;
   border-radius: 20px;
-  padding: 24px 8px 14px 8px;
+  padding: 20px 10px 14px 10px;
   margin: 16px 0 24px 0;
   width: 100%;
   box-sizing: border-box;
   overflow: hidden;
+  position: relative;
+}
+
+/* TOP 3 INTERACTIVE CLICK TOOLTIP POPOVER CARD */
+.top3-tooltip-popover {
+  margin-bottom: 14px;
+  background: #0f172a;
+  color: #ffffff;
+  border-radius: 14px;
+  padding: 10px 14px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.35);
+  animation: tooltipFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .top3-single-vertical-container {
@@ -722,6 +737,7 @@
   min-width: 0;
   box-sizing: border-box;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .v-bar-single-track {
@@ -741,7 +757,7 @@
   justify-content: flex-start;
   align-items: center;
   padding-top: 4px;
-  transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
 }
 
@@ -758,6 +774,11 @@
 .v-bar-single-fill.cogs {
   background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
   box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25);
+}
+
+.v-bar-single-fill.active-halo {
+  filter: brightness(1.15);
+  transform: scale(1.05);
 }
 
 .v-single-val {
