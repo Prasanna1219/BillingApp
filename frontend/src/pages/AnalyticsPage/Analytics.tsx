@@ -68,6 +68,9 @@ const Analytics: React.FC = () => {
   const [productSearch, setProductSearch] = useState('');
   const [productSort, setProductSort] = useState<'sales' | 'profit' | 'cogs' | 'units'>('sales');
 
+  // Single Value Metric Selection for Top 3 Vertical Bar Chart ('sales' | 'profit' | 'cogs')
+  const [top3Metric, setTop3Metric] = useState<'sales' | 'profit' | 'cogs'>('sales');
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [data, setData] = useState<AnalyticsData | null>(null);
@@ -292,12 +295,22 @@ const Analytics: React.FC = () => {
       return parseFloat(b.sales_amount) - parseFloat(a.sales_amount);
     });
 
-  const maxProductSales = Math.max(...rawProductData.map(p => parseFloat(p.sales_amount)), 100);
+  // Top 3 Products for Single Metric Vertical Bar Chart
+  const top3Products = [...rawProductData]
+    .sort((a, b) => {
+      if (top3Metric === 'profit') return parseFloat(b.profit) - parseFloat(a.profit);
+      if (top3Metric === 'cogs') return parseFloat(b.ingredient_cost) - parseFloat(a.ingredient_cost);
+      return parseFloat(b.sales_amount) - parseFloat(a.sales_amount);
+    })
+    .slice(0, 3);
 
-  // Key Product Highlights
-  const topEarner = [...rawProductData].sort((a, b) => parseFloat(b.sales_amount) - parseFloat(a.sales_amount))[0];
-  const topProfitDish = [...rawProductData].sort((a, b) => parseFloat(b.profit) - parseFloat(a.profit))[0];
-  const topCogsDish = [...rawProductData].sort((a, b) => parseFloat(b.ingredient_cost) - parseFloat(a.ingredient_cost))[0];
+  const getMetricValue = (p: ProductItemData) => {
+    if (top3Metric === 'profit') return parseFloat(p.profit);
+    if (top3Metric === 'cogs') return parseFloat(p.ingredient_cost);
+    return parseFloat(p.sales_amount);
+  };
+
+  const top3MaxVal = Math.max(...top3Products.map(getMetricValue), 100);
 
   return (
     <div className="analytics-page" onClick={() => setActivePoint(null)}>
@@ -784,74 +797,82 @@ const Analytics: React.FC = () => {
 
           </div>
 
-          {/* CLEAN SYSTEM-ALIGNED PER-PRODUCT PERFORMANCE SECTION */}
+          {/* TOP 3 PRODUCTS SINGLE METRIC VERTICAL BAR CHART SECTION */}
           <div className="analytics-product-card" onClick={e => e.stopPropagation()}>
             
             {/* Header Toolbar */}
             <div className="clean-section-header">
               <div>
-                <span className="card-sub-header">Menu Item Breakdown</span>
-                <h3 className="product-chart-title">Product Performance</h3>
+                <span className="card-sub-header">Top Performers</span>
+                <h3 className="product-chart-title">Top 3 Products Vertical Bar Chart</h3>
               </div>
-              <div className="product-chart-legend">
-                <span className="legend-chip sales"><span className="dot sales"></span> Sales</span>
-                <span className="legend-chip profit"><span className="dot profit"></span> Profit</span>
-                <span className="legend-chip cogs"><span className="dot cogs"></span> Cost</span>
+              
+              {/* Single Value Metric Selector Pills */}
+              <div className="single-metric-selector-pills">
+                <button 
+                  className={`metric-pill sales ${top3Metric === 'sales' ? 'active' : ''}`}
+                  onClick={() => setTop3Metric('sales')}
+                >
+                  <span className="dot sales"></span> Sales
+                </button>
+
+                <button 
+                  className={`metric-pill profit ${top3Metric === 'profit' ? 'active' : ''}`}
+                  onClick={() => setTop3Metric('profit')}
+                >
+                  <span className="dot profit"></span> Profit
+                </button>
+
+                <button 
+                  className={`metric-pill cogs ${top3Metric === 'cogs' ? 'active' : ''}`}
+                  onClick={() => setTop3Metric('cogs')}
+                >
+                  <span className="dot cogs"></span> Ingredient Cost
+                </button>
               </div>
             </div>
 
-            {/* Horizontal Swipeable Top Product Highlights Strip */}
-            {rawProductData.length > 0 && (
-              <div className="product-highlights-horizontal-strip">
-                
-                {/* Highlight 1: Top Revenue Dish */}
-                {topEarner && (
-                  <div className="compact-highlight-item">
-                    <div className="highlight-icon-badge purple">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 003-3V8.25a3 3 0 00-3-3h-9a3 3 0 00-3 3v7.5a3 3 0 003 3m9 0v-13.5A2.25 2.25 0 0014.25 3h-4.5A2.25 2.25 0 007.5 5.25v13.5" />
-                      </svg>
-                    </div>
-                    <div className="highlight-text-col">
-                      <span className="tag-label">Top Revenue Dish</span>
-                      <h4 className="dish-name">{topEarner.item_name}</h4>
-                      <span className="val-text">₹{parseFloat(topEarner.sales_amount).toLocaleString('en-IN')} <small>({topEarner.units_sold} sold)</small></span>
-                    </div>
-                  </div>
-                )}
+            {/* SINGLE METRIC VERTICAL BAR CHART FOR TOP 3 DISHES */}
+            {top3Products.length === 0 ? (
+              <div className="empty-chart">No product sales logged.</div>
+            ) : (
+              <div className="top3-single-vertical-wrapper">
+                <div className="top3-single-vertical-container">
+                  {top3Products.map((prod, idx) => {
+                    const val = getMetricValue(prod);
 
-                {/* Highlight 2: Highest Net Profit Dish */}
-                {topProfitDish && (
-                  <div className="compact-highlight-item">
-                    <div className="highlight-icon-badge teal">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 005.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
-                      </svg>
-                    </div>
-                    <div className="highlight-text-col">
-                      <span className="tag-label">Most Profitable</span>
-                      <h4 className="dish-name">{topProfitDish.item_name}</h4>
-                      <span className="val-text green">₹{parseFloat(topProfitDish.profit).toLocaleString('en-IN')} <small>({parseFloat(topProfitDish.sales_amount) > 0 ? `${((parseFloat(topProfitDish.profit) / parseFloat(topProfitDish.sales_amount)) * 100).toFixed(0)}%` : '0%'})</small></span>
-                    </div>
-                  </div>
-                )}
+                    const maxHeightPx = 150;
+                    const barH = (val / top3MaxVal) * maxHeightPx;
 
-                {/* Highlight 3: High Ingredient Cost Warning */}
-                {topCogsDish && (
-                  <div className="compact-highlight-item">
-                    <div className="highlight-icon-badge amber">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                      </svg>
-                    </div>
-                    <div className="highlight-text-col">
-                      <span className="tag-label">High Food Cost</span>
-                      <h4 className="dish-name">{topCogsDish.item_name}</h4>
-                      <span className="val-text amber">₹{parseFloat(topCogsDish.ingredient_cost).toLocaleString('en-IN')} <small>(Raw cost)</small></span>
-                    </div>
-                  </div>
-                )}
+                    return (
+                      <div key={prod.item_id} className="top3-single-column">
+                        
+                        {/* Single Vertical Column Bar */}
+                        <div className="v-bar-single-track">
+                          <div 
+                            className={`v-bar-single-fill ${top3Metric}`} 
+                            style={{ height: `${Math.max(barH, 14)}px` }} 
+                            title={`${top3Metric.toUpperCase()}: ₹${val.toFixed(2)}`}
+                          >
+                            <span className="v-single-val">
+                              ₹{val >= 1000 ? `${(val/1000).toFixed(1)}k` : val.toFixed(0)}
+                            </span>
+                          </div>
+                        </div>
 
+                        {/* Dish Name & Rank Badge */}
+                        <div className="group-bottom-info">
+                          <div className="name-rank-row center">
+                            <span className={`rank-badge rank-${idx + 1}`}>#{idx + 1}</span>
+                            <span className="prod-name" title={prod.item_name}>{prod.item_name}</span>
+                          </div>
+                          <span className="prod-badge">{prod.units_sold} sold</span>
+                        </div>
+
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
 
@@ -898,72 +919,9 @@ const Analytics: React.FC = () => {
               </div>
             </div>
 
-            {/* Dynamic Product Bar Chart Rows */}
-            {filteredProducts.length === 0 ? (
-              <div className="empty-chart">No products match your search.</div>
-            ) : (
-              <div className="product-bar-chart-container">
-                {filteredProducts.map((prod, idx) => {
-                  const salesVal = parseFloat(prod.sales_amount);
-                  const profitVal = parseFloat(prod.profit);
-                  const cogsVal = parseFloat(prod.ingredient_cost);
-
-                  const salesWidth = (salesVal / maxProductSales) * 100;
-                  const profitWidth = (Math.max(0, profitVal) / maxProductSales) * 100;
-                  const cogsWidth = (cogsVal / maxProductSales) * 100;
-
-                  const marginPctVal = salesVal > 0 ? (profitVal / salesVal) * 100 : 0;
-                  const cogsPctVal = salesVal > 0 ? (cogsVal / salesVal) * 100 : 0;
-
-                  return (
-                    <div key={prod.item_id} className="product-bar-row">
-                      
-                      {/* Product Name & Badges */}
-                      <div className="product-info-col">
-                        <div className="name-rank-row">
-                          {idx < 3 && <span className={`rank-badge rank-${idx + 1}`}>#{idx + 1}</span>}
-                          <span className="prod-name">{prod.item_name}</span>
-                        </div>
-                        <span className="prod-badge">{prod.units_sold} sold • {marginPctVal.toFixed(0)}% margin</span>
-                      </div>
-
-                      {/* Stacked Group Bars */}
-                      <div className="bars-stack-col">
-                        
-                        {/* 1. Sales Bar (Indigo Gradient) */}
-                        <div className="single-bar-container" title={`Total Sales: ₹${salesVal.toFixed(2)}`}>
-                          <div className="bar-fill sales" style={{ width: `${salesWidth}%` }}></div>
-                          <span className="bar-val">₹{salesVal.toFixed(0)}</span>
-                        </div>
-
-                        {/* 2. Net Profit Bar (Emerald Green Gradient) */}
-                        <div className="single-bar-container" title={`Net Profit: ₹${profitVal.toFixed(2)}`}>
-                          <div className="bar-fill profit" style={{ width: `${profitWidth}%` }}></div>
-                          <span className="bar-val profit">₹{profitVal.toFixed(0)}</span>
-                        </div>
-
-                        {/* 3. Ingredient Cost Bar (Amber Gradient) */}
-                        <div className="single-bar-container" title={`Ingredient Cost: ₹${cogsVal.toFixed(2)}`}>
-                          <div className="bar-fill cogs" style={{ width: `${cogsWidth}%` }}></div>
-                          <span className="bar-val cogs">₹{cogsVal.toFixed(0)}</span>
-                        </div>
-
-                        {/* Segmented Distribution Ratio Bar */}
-                        <div className="segmented-ratio-bar" title={`Profit: ${marginPctVal.toFixed(0)}% | Food Cost: ${cogsPctVal.toFixed(0)}%`}>
-                          <div className="segment profit" style={{ width: `${marginPctVal}%` }}></div>
-                          <div className="segment cogs" style={{ width: `${cogsPctVal}%` }}></div>
-                        </div>
-
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
             {/* Detailed Product Performance Data Table */}
             <div className="product-details-table-wrapper">
-              <h4>Product Breakdown Table</h4>
+              <h4>All Products Breakdown Table</h4>
               <table className="product-analytics-table">
                 <thead>
                   <tr>

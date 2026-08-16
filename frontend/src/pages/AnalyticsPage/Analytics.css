@@ -585,7 +585,7 @@
 .legend-item .dot.cogs { background-color: #f59e0b; }
 .legend-item .dot.ingused { background-color: #ec4899; }
 
-/* PER-PRODUCT PERFORMANCE CARD (CLEAN APP SYSTEM) */
+/* PER-PRODUCT PERFORMANCE CARD */
 .analytics-product-card {
   background: #ffffff;
   border: 1px solid #f1f5f9;
@@ -624,120 +624,195 @@
   letter-spacing: -0.02em;
 }
 
-.product-chart-legend {
+/* SINGLE METRIC SELECTOR PILLS */
+.single-metric-selector-pills {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.legend-chip {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: #475569;
-  display: flex;
-  align-items: center;
   gap: 6px;
-  background-color: #f8fafc;
-  padding: 4px 10px;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-}
-
-.legend-chip .dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.legend-chip .dot.sales { background-color: #6366f1; }
-.legend-chip .dot.profit { background-color: #10b981; }
-.legend-chip .dot.cogs { background-color: #f59e0b; }
-
-/* COMPACT HORIZONTAL HIGHLIGHTS SWIPE STRIP */
-.product-highlights-horizontal-strip {
-  display: flex;
-  gap: 10px;
   overflow-x: auto;
   scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-  margin-bottom: 16px;
-  padding-bottom: 4px;
 }
 
-.product-highlights-horizontal-strip::-webkit-scrollbar {
+.single-metric-selector-pills::-webkit-scrollbar {
   display: none;
 }
 
-.compact-highlight-item {
-  flex: 1;
-  min-width: 200px;
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+.metric-pill {
+  border: 1px solid #cbd5e1;
+  background-color: #f8fafc;
+  color: #475569;
+  padding: 5px 12px;
   border-radius: 16px;
-  padding: 12px 14px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  gap: 6px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
 }
 
-.highlight-icon-badge {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+.metric-pill .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.metric-pill .dot.sales { background-color: #6366f1; }
+.metric-pill .dot.profit { background-color: #10b981; }
+.metric-pill .dot.cogs { background-color: #f59e0b; }
+
+.metric-pill.sales.active {
+  background-color: #6366f1;
+  border-color: #6366f1;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+}
+
+.metric-pill.sales.active .dot.sales { background-color: #ffffff; }
+
+.metric-pill.profit.active {
+  background-color: #10b981;
+  border-color: #10b981;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+.metric-pill.profit.active .dot.profit { background-color: #ffffff; }
+
+.metric-pill.cogs.active {
+  background-color: #f59e0b;
+  border-color: #f59e0b;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+}
+
+.metric-pill.cogs.active .dot.cogs { background-color: #ffffff; }
+
+/* TOP 3 PRODUCTS SINGLE METRIC VERTICAL BAR CHART */
+.top3-single-vertical-wrapper {
+  background-color: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 20px;
+  padding: 24px 12px 14px 12px;
+  margin: 16px 0 24px 0;
+}
+
+.top3-single-vertical-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  align-items: flex-end;
+  min-height: 220px;
+}
+
+.top3-single-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.v-bar-single-track {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 150px;
+}
+
+.v-bar-single-fill {
+  width: 100%;
+  max-width: 44px;
+  border-radius: 12px 12px 4px 4px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding-top: 4px;
+  transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.v-bar-single-fill.sales {
+  background: linear-gradient(180deg, #6366f1 0%, #4f46e5 100%);
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.25);
+}
+
+.v-bar-single-fill.profit {
+  background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+}
+
+.v-bar-single-fill.cogs {
+  background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25);
+}
+
+.v-single-val {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #1e293b;
+  transform: translateY(-20px);
+  white-space: nowrap;
+}
+
+.group-bottom-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.name-rank-row.center {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.v-bar-single-fill:hover {
+  filter: brightness(1.08);
+}
+
+.rank-badge {
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 6px;
   flex-shrink: 0;
 }
 
-.highlight-icon-badge svg {
-  width: 18px;
-  height: 18px;
-}
+.rank-badge.rank-1 { background-color: #fef08a; color: #854d0e; }
+.rank-badge.rank-2 { background-color: #e2e8f0; color: #334155; }
+.rank-badge.rank-3 { background-color: #ffedd5; color: #9a3412; }
 
-.highlight-icon-badge.purple { background-color: #f3e8ff; color: #9333ea; }
-.highlight-icon-badge.teal { background-color: #ccfbf1; color: #0d9488; }
-.highlight-icon-badge.amber { background-color: #fef3c7; color: #d97706; }
-
-.highlight-text-col {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.highlight-text-col .tag-label {
-  font-size: 0.7rem;
+.prod-name {
+  font-size: 0.8rem;
   font-weight: 700;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
-.highlight-text-col .dish-name {
-  margin: 0;
-  font-size: 0.92rem;
-  font-weight: 800;
   color: #0f172a;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 130px;
+  max-width: 75px;
 }
 
-.highlight-text-col .val-text {
-  font-size: 0.88rem;
-  font-weight: 800;
-  color: #1e1b4b;
-}
-
-.highlight-text-col .val-text.green { color: #059669; }
-.highlight-text-col .val-text.amber { color: #d97706; }
-
-.highlight-text-col .val-text small {
-  font-size: 0.72rem;
+.prod-badge {
+  font-size: 0.7rem;
   font-weight: 600;
   color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 /* SEARCH & SORT TOOLBAR */
@@ -824,123 +899,6 @@
   border-color: #6366f1;
   color: #ffffff;
 }
-
-/* Product Horizontal Bar Chart Container */
-.product-bar-chart-container {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin: 16px 0 24px 0;
-}
-
-.product-bar-row {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-  padding: 12px 14px;
-  border-radius: 16px;
-  background-color: #f8fafc;
-  border: 1px solid #f1f5f9;
-  transition: all 0.15s ease;
-}
-
-.product-bar-row:hover {
-  background-color: #ffffff;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
-  border-color: #cbd5e1;
-}
-
-@media (min-width: 600px) {
-  .product-bar-row {
-    grid-template-columns: 190px 1fr;
-    align-items: center;
-  }
-}
-
-.name-rank-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.rank-badge {
-  font-size: 0.72rem;
-  font-weight: 800;
-  padding: 2px 6px;
-  border-radius: 6px;
-}
-
-.rank-badge.rank-1 { background-color: #fef08a; color: #854d0e; }
-.rank-badge.rank-2 { background-color: #e2e8f0; color: #334155; }
-.rank-badge.rank-3 { background-color: #ffedd5; color: #9a3412; }
-
-.product-info-col {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.prod-name {
-  font-size: 0.9rem;
-  font-weight: 800;
-  color: #0f172a;
-}
-
-.prod-badge {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #64748b;
-}
-
-.bars-stack-col {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.single-bar-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 11px;
-  background-color: #e2e8f0;
-  border-radius: 6px;
-  position: relative;
-  overflow: visible;
-}
-
-.bar-fill {
-  height: 100%;
-  border-radius: 6px;
-  transition: width 0.4s ease;
-}
-
-.bar-fill.sales { background: linear-gradient(90deg, #6366f1, #4f46e5); }
-.bar-fill.profit { background: linear-gradient(90deg, #10b981, #059669); }
-.bar-fill.cogs { background: linear-gradient(90deg, #f59e0b, #d97706); }
-
-.bar-val {
-  font-size: 0.72rem;
-  font-weight: 800;
-  color: #475569;
-  white-space: nowrap;
-}
-
-.bar-val.profit { color: #059669; }
-.bar-val.cogs { color: #d97706; }
-
-/* SEGMENTED MARGIN RATIO BAR */
-.segmented-ratio-bar {
-  display: flex;
-  height: 3px;
-  border-radius: 2px;
-  overflow: hidden;
-  background-color: #e2e8f0;
-  margin-top: 2px;
-}
-
-.segmented-ratio-bar .segment.profit { background-color: #10b981; }
-.segmented-ratio-bar .segment.cogs { background-color: #f59e0b; }
 
 /* Product Analytics Table */
 .product-details-table-wrapper {
