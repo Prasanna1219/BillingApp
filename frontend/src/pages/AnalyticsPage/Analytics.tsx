@@ -827,7 +827,7 @@ const Analytics: React.FC = () => {
                   className={`metric-pill cogs ${top3Metric === 'cogs' ? 'active' : ''}`}
                   onClick={() => setTop3Metric('cogs')}
                 >
-                  <span className="dot cogs"></span> Ingredient Cost
+                  <span className="dot cogs"></span> Cost
                 </button>
               </div>
             </div>

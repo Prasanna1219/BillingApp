@@ -694,16 +694,21 @@
   background-color: #f8fafc;
   border: 1px solid #f1f5f9;
   border-radius: 20px;
-  padding: 24px 12px 14px 12px;
+  padding: 24px 8px 14px 8px;
   margin: 16px 0 24px 0;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .top3-single-vertical-container {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
   align-items: flex-end;
   min-height: 220px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .top3-single-column {
@@ -713,6 +718,10 @@
   gap: 12px;
   height: 100%;
   justify-content: flex-end;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .v-bar-single-track {
@@ -725,7 +734,7 @@
 
 .v-bar-single-fill {
   width: 100%;
-  max-width: 44px;
+  max-width: 34px;
   border-radius: 12px 12px 4px 4px;
   display: flex;
   flex-direction: column;
