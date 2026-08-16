@@ -9,6 +9,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Auto-ensure is_active column exists on database startup
+(async () => {
+  try {
+    await db.query("ALTER TABLE items ADD COLUMN is_active BOOLEAN DEFAULT true;");
+    console.log("Auto-migration: is_active column verified/added to items table.");
+  } catch (e) {
+    // Column already exists or safely handled
+  }
+})();
+
 // Routes
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Backend is running' });
@@ -23,160 +33,85 @@ const hashPassword = (password) => {
 // Auth Routes - Register
 app.post('/api/auth/register', async (req, res) => {
   const { phoneNumber, username, password } = req.body;
-  
-  if (!phoneNumber || !password) {
-    return res.status(400).json({ status: 'error', message: 'Phone number and password are required' });
-  }
-
   try {
-    // Check if user already exists
+    const hashedPassword = hashPassword(password);
     const [existing] = await db.query('SELECT * FROM users WHERE phone_number = ?', [phoneNumber]);
     if (existing.length > 0) {
-      return res.status(400).json({ status: 'error', message: 'User already exists with this phone number' });
+      return res.status(400).json({ status: 'error', message: 'Phone number already registered' });
     }
 
-    // Hash the password
-    const hashedPassword = hashPassword(password);
-
-    // Insert user (default role Owner)
-    const [result] = await db.query(
+    const [userResult] = await db.query(
       'INSERT INTO users (phone_number, username, password, role) VALUES (?, ?, ?, ?)',
-      [phoneNumber, username || null, hashedPassword, 'Owner']
+      [phoneNumber, username, hashedPassword, 'Owner']
+    );
+    const userId = userResult.insertId;
+
+    const [bizResult] = await db.query(
+      'INSERT INTO business_profile (owner_id, business_name, phone_number) VALUES (?, ?, ?)',
+      [userId, `${username}'s Business`, phoneNumber]
     );
 
-    const user = {
-      id: result.insertId,
-      phone_number: phoneNumber,
-      username: username || null,
-      role: 'Owner'
-    };
-
-    res.json({ status: 'success', message: 'Registration successful', user });
+    res.json({
+      status: 'success',
+      message: 'Account created successfully',
+      user: { id: userId, phoneNumber, username, role: 'Owner', businessId: bizResult.insertId }
+    });
   } catch (error) {
-    res.status(500).json({ status: 'error', message: 'Server error during registration', error: error.message });
+    res.status(500).json({ status: 'error', message: 'Registration failed', error: error.message });
   }
 });
 
 // Auth Routes - Login
 app.post('/api/auth/login', async (req, res) => {
   const { phoneNumber, password } = req.body;
-
-  if (!phoneNumber || !password) {
-    return res.status(400).json({ status: 'error', message: 'Phone number and password are required' });
-  }
-
   try {
-    // Query user
-    const [rows] = await db.query('SELECT * FROM users WHERE phone_number = ?', [phoneNumber]);
-    const user = rows[0];
-
-    if (!user) {
-      return res.status(401).json({ status: 'error', message: 'Invalid phone number or password' });
-    }
-
-    // Verify password
     const hashedPassword = hashPassword(password);
-    if (user.password !== hashedPassword) {
+    const [users] = await db.query('SELECT * FROM users WHERE phone_number = ? AND password = ?', [phoneNumber, hashedPassword]);
+    if (users.length === 0) {
       return res.status(401).json({ status: 'error', message: 'Invalid phone number or password' });
     }
+    const user = users[0];
+    const [biz] = await db.query('SELECT * FROM business_profile WHERE owner_id = ?', [user.id]);
+    const business = biz.length > 0 ? biz[0] : null;
 
-    // Remove password field from the returned user object
-    const { password: _, ...safeUser } = user;
-
-    res.json({ status: 'success', message: 'Login successful', user: safeUser });
+    res.json({
+      status: 'success',
+      message: 'Login successful',
+      user: { id: user.id, phoneNumber: user.phone_number, username: user.username, role: user.role, businessId: business ? business.id : null }
+    });
   } catch (error) {
-    res.status(500).json({ status: 'error', message: 'Server error during login', error: error.message });
+    res.status(500).json({ status: 'error', message: 'Login failed', error: error.message });
   }
 });
 
 // Business Profile Routes
-app.get('/api/business/:userId', async (req, res) => {
-  const { userId } = req.params;
+app.get('/api/business/:ownerId', async (req, res) => {
+  const { ownerId } = req.params;
   try {
-    const [rows] = await db.query('SELECT * FROM business_profile WHERE owner_id = ?', [userId]);
+    const [rows] = await db.query('SELECT * FROM business_profile WHERE owner_id = ?', [ownerId]);
     if (rows.length === 0) {
-      return res.json({ status: 'success', hasBusiness: false });
+      return res.status(404).json({ status: 'error', message: 'Business profile not found' });
     }
-    return res.json({ status: 'success', hasBusiness: true, business: rows[0] });
+    res.json({ status: 'success', business: rows[0] });
   } catch (error) {
-    res.status(500).json({ status: 'error', message: 'Server error', error: error.message });
+    res.status(500).json({ status: 'error', message: 'Failed to fetch business profile', error: error.message });
   }
 });
 
-app.post('/api/business', async (req, res) => {
-  const { owner_id, business_name, phone_number, outlet_address, upi_id, fssai_number, tax_slab, seating_capacity, business_type, business_category, gstin, footer_message } = req.body;
-  
-  try {
-    const [result] = await db.query(
-      `INSERT INTO business_profile 
-      (owner_id, business_name, phone_number, outlet_address, upi_id, fssai_number, tax_slab, seating_capacity, business_type, business_category, gstin, footer_message) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [owner_id, business_name, phone_number, outlet_address, upi_id, fssai_number, tax_slab, seating_capacity, business_type, business_category, gstin, footer_message]
-    );
-    res.json({ status: 'success', message: 'Business profile created', businessId: result.insertId });
-  } catch (error) {
-    res.status(500).json({ status: 'error', message: 'Failed to create business profile', error: error.message });
-  }
-});
-
-app.put('/api/business/:id', async (req, res) => {
-  const { id } = req.params;
-  const {
-    business_name,
-    phone_number,
-    outlet_address,
-    upi_id,
-    fssai_number,
-    tax_slab,
-    seating_capacity,
-    business_type,
-    business_category,
-    gstin,
-    footer_message,
-    google_link,
-    swiggy_link,
-    zomato_link
-  } = req.body;
-
+app.put('/api/business/:ownerId', async (req, res) => {
+  const { ownerId } = req.params;
+  const { business_name, phone_number, outlet_address, upi_id, fssai_number, tax_slab, seating_capacity, business_type, business_category, gstin, footer_message, google_link, swiggy_link, zomato_link } = req.body;
   try {
     await db.query(
       `UPDATE business_profile SET 
-        business_name = ?, 
-        phone_number = ?, 
-        outlet_address = ?, 
-        upi_id = ?, 
-        fssai_number = ?, 
-        tax_slab = ?, 
-        seating_capacity = ?, 
-        business_type = ?, 
-        business_category = ?, 
-        gstin = ?, 
-        footer_message = ?,
-        google_link = ?,
-        swiggy_link = ?,
-        zomato_link = ?
-      WHERE id = ?`,
-      [
-        business_name,
-        phone_number,
-        outlet_address,
-        upi_id,
-        fssai_number,
-        tax_slab || 0.0,
-        seating_capacity || 0,
-        business_type,
-        business_category,
-        gstin,
-        footer_message,
-        google_link,
-        swiggy_link,
-        zomato_link,
-        id
-      ]
+        business_name = ?, phone_number = ?, outlet_address = ?, upi_id = ?, 
+        fssai_number = ?, tax_slab = ?, seating_capacity = ?, business_type = ?, 
+        business_category = ?, gstin = ?, footer_message = ?, google_link = ?, 
+        swiggy_link = ?, zomato_link = ? 
+       WHERE owner_id = ?`,
+      [business_name, phone_number, outlet_address, upi_id, fssai_number, tax_slab, seating_capacity, business_type, business_category, gstin, footer_message, google_link, swiggy_link, zomato_link, ownerId]
     );
-
-    // Fetch the updated profile to send back
-    const [rows] = await db.query('SELECT * FROM business_profile WHERE id = ?', [id]);
+    const [rows] = await db.query('SELECT * FROM business_profile WHERE owner_id = ?', [ownerId]);
     res.json({ status: 'success', message: 'Business profile updated', business: rows[0] });
   } catch (error) {
     res.status(500).json({ status: 'error', message: 'Failed to update business profile', error: error.message });
@@ -197,6 +132,22 @@ app.get('/api/items/:businessId', async (req, res) => {
 app.post('/api/items', async (req, res) => {
   const { business_id, name, sales_price, tax_percentage, price_includes_tax } = req.body;
   try {
+    // Check if an archived (soft-deleted) item with the same name exists
+    const [existing] = await db.query(
+      'SELECT id FROM items WHERE business_id = ? AND LOWER(TRIM(name)) = LOWER(TRIM(?)) AND is_active = false',
+      [business_id, name]
+    );
+
+    if (existing.length > 0) {
+      // Reactivate archived item while preserving full historical sales links
+      const itemId = existing[0].id;
+      await db.query(
+        'UPDATE items SET is_active = true, sales_price = ?, tax_percentage = ?, price_includes_tax = ? WHERE id = ?',
+        [sales_price, tax_percentage || 0, price_includes_tax || false, itemId]
+      );
+      return res.json({ status: 'success', message: 'Item reactivated', itemId });
+    }
+
     const [result] = await db.query(
       'INSERT INTO items (business_id, name, sales_price, tax_percentage, price_includes_tax, is_active) VALUES (?, ?, ?, ?, ?, true)',
       [business_id, name, sales_price, tax_percentage || 0, price_includes_tax || false]
