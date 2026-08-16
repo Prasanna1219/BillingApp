@@ -939,11 +939,27 @@
   -webkit-overflow-scrolling: touch;
 }
 
+.table-header-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
 .product-details-table-wrapper h4 {
-  margin: 0 0 12px 0;
+  margin: 0;
   font-size: 0.92rem;
   font-weight: 800;
   color: #1e293b;
+}
+
+.mobile-tap-hint {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #6366f1;
+  background-color: #eff6ff;
+  padding: 3px 8px;
+  border-radius: 6px;
 }
 
 .product-analytics-table {
@@ -970,8 +986,17 @@
   color: #334155;
 }
 
-.product-analytics-table tr:hover td {
+.clickable-table-row {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.clickable-table-row:hover {
   background-color: #f8fafc;
+}
+
+.clickable-table-row:active {
+  background-color: #f1f5f9;
 }
 
 .font-bold { font-weight: 800; }
@@ -1002,6 +1027,166 @@
 .margin-pill.medium {
   background-color: #fef3c7;
   color: #92400e;
+}
+
+@media (max-width: 768px) {
+  .col-cogs, .col-profit, .col-margin {
+    display: none !important;
+  }
+  
+  .product-analytics-table th, .product-analytics-table td {
+    padding: 10px 8px;
+  }
+}
+
+/* PRODUCT DETAILS MODAL OVERLAY POPUP */
+.product-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeInModal 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeInModal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.product-modal-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 22px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e2e8f0;
+  animation: slideUpModal 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUpModal {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.product-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 12px;
+}
+
+.product-modal-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #6366f1;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.product-modal-title {
+  margin: 2px 0 0 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.product-modal-close {
+  background: #f1f5f9;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.product-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-metric-box {
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border: 1px solid #e2e8f0;
+}
+
+.modal-metric-box.purple { background-color: #faf5ff; border-color: #e9d5ff; }
+.modal-metric-box.green { background-color: #f0fdf4; border-color: #bbf7d0; }
+.modal-metric-box.amber { background-color: #fffbeb; border-color: #fde68a; }
+
+.modal-metric-box .box-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.modal-metric-box .box-val {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.modal-metric-box .box-val.green { color: #059669; }
+.modal-metric-box .box-val.amber { color: #d97706; }
+
+.modal-metric-box .box-sub {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.modal-two-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.modal-footer-note {
+  margin-top: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rating-badge.high {
+  color: #065f46;
+  background-color: #d1fae5;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.rating-badge.medium {
+  color: #92400e;
+  background-color: #fef3c7;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
 /* Loading & Error States */

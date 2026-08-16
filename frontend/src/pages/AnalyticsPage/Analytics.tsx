@@ -82,6 +82,9 @@ const Analytics: React.FC = () => {
     rank: number;
   } | null>(null);
 
+  // Clicked Product Details Modal Overlay
+  const [selectedTableProduct, setSelectedTableProduct] = useState<ProductItemData | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [data, setData] = useState<AnalyticsData | null>(null);
@@ -982,16 +985,20 @@ const Analytics: React.FC = () => {
 
             {/* Detailed Product Performance Data Table */}
             <div className="product-details-table-wrapper">
-              <h4>All Products Breakdown Table</h4>
+              <div className="table-header-info-row">
+                <h4>All Products Breakdown</h4>
+                <span className="mobile-tap-hint">Tap any row for full details</span>
+              </div>
+
               <table className="product-analytics-table">
                 <thead>
                   <tr>
                     <th>Dish Name</th>
                     <th>Units</th>
                     <th>Sales</th>
-                    <th>Ingredient Cost</th>
-                    <th>Profit</th>
-                    <th>Margin</th>
+                    <th className="col-cogs">Ingredient Cost</th>
+                    <th className="col-profit">Profit</th>
+                    <th className="col-margin">Margin</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1002,13 +1009,20 @@ const Analytics: React.FC = () => {
                     const marginPct = salesVal > 0 ? ((profitVal / salesVal) * 100).toFixed(1) : '0.0';
 
                     return (
-                      <tr key={`tbl-${prod.item_id}`}>
+                      <tr 
+                        key={`tbl-${prod.item_id}`} 
+                        className="clickable-table-row"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedTableProduct(prod);
+                        }}
+                      >
                         <td className="font-bold">{prod.item_name}</td>
                         <td><span className="units-badge">{prod.units_sold} pcs</span></td>
-                        <td className="font-bold">₹{salesVal.toFixed(2)}</td>
-                        <td className="cogs-text">₹{cogsVal.toFixed(2)}</td>
-                        <td className="profit-text font-bold">₹{profitVal.toFixed(2)}</td>
-                        <td>
+                        <td className="font-bold">₹{salesVal.toFixed(0)}</td>
+                        <td className="cogs-text col-cogs">₹{cogsVal.toFixed(2)}</td>
+                        <td className="profit-text font-bold col-profit">₹{profitVal.toFixed(2)}</td>
+                        <td className="col-margin">
                           <span className={`margin-pill ${parseFloat(marginPct) >= 50 ? 'high' : 'medium'}`}>
                             {marginPct}%
                           </span>
@@ -1024,6 +1038,61 @@ const Analytics: React.FC = () => {
 
         </div>
       )}
+
+      {/* PRODUCT DETAILS MODAL POPUP OVERLAY */}
+      {selectedTableProduct && (
+        <div className="product-modal-backdrop" onClick={() => setSelectedTableProduct(null)}>
+          <div className="product-modal-card" onClick={e => e.stopPropagation()}>
+            <div className="product-modal-header">
+              <div>
+                <span className="product-modal-tag">Product Breakdown</span>
+                <h3 className="product-modal-title">{selectedTableProduct.item_name}</h3>
+              </div>
+              <button className="product-modal-close" onClick={() => setSelectedTableProduct(null)}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="product-modal-body">
+              <div className="modal-metric-box purple">
+                <span className="box-label">Total Sales Revenue</span>
+                <span className="box-val">₹{parseFloat(selectedTableProduct.sales_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                <span className="box-sub">{selectedTableProduct.units_sold} Units Sold</span>
+              </div>
+
+              <div className="modal-two-grid">
+                <div className="modal-metric-box green">
+                  <span className="box-label">Net Profit</span>
+                  <span className="box-val green">₹{parseFloat(selectedTableProduct.profit).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                  <span className="box-sub">
+                    {parseFloat(selectedTableProduct.sales_amount) > 0 
+                      ? `${((parseFloat(selectedTableProduct.profit) / parseFloat(selectedTableProduct.sales_amount)) * 100).toFixed(1)}% margin` 
+                      : '0% margin'}
+                  </span>
+                </div>
+
+                <div className="modal-metric-box amber">
+                  <span className="box-label">Ingredient Cost</span>
+                  <span className="box-val amber">₹{parseFloat(selectedTableProduct.ingredient_cost).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                  <span className="box-sub">Raw Cost of Goods</span>
+                </div>
+              </div>
+
+              <div className="modal-footer-note">
+                <span>Profit Rating: </span>
+                {parseFloat(selectedTableProduct.sales_amount) > 0 && (parseFloat(selectedTableProduct.profit) / parseFloat(selectedTableProduct.sales_amount)) >= 0.5 ? (
+                  <span className="rating-badge high">High Margin Item (≥ 50%)</span>
+                ) : (
+                  <span className="rating-badge medium">Standard Margin Item</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
