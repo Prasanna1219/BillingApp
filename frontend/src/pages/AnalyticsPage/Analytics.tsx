@@ -64,6 +64,10 @@ const Analytics: React.FC = () => {
     ingredients_used: string;
   } | null>(null);
 
+  // Product Search & Sort State
+  const [productSearch, setProductSearch] = useState('');
+  const [productSort, setProductSort] = useState<'sales' | 'profit' | 'cogs' | 'units'>('sales');
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [data, setData] = useState<AnalyticsData | null>(null);
@@ -275,9 +279,25 @@ const Analytics: React.FC = () => {
     });
   }
 
-  // Max value calculation for Product Bar Chart
-  const productData = data?.productData || [];
-  const maxProductSales = Math.max(...productData.map(p => parseFloat(p.sales_amount)), 100);
+  // Product Analysis Calculations
+  const rawProductData = data?.productData || [];
+
+  // Filter & Sort Products
+  const filteredProducts = rawProductData
+    .filter(p => p.item_name.toLowerCase().includes(productSearch.toLowerCase()))
+    .sort((a, b) => {
+      if (productSort === 'profit') return parseFloat(b.profit) - parseFloat(a.profit);
+      if (productSort === 'cogs') return parseFloat(b.ingredient_cost) - parseFloat(a.ingredient_cost);
+      if (productSort === 'units') return b.units_sold - a.units_sold;
+      return parseFloat(b.sales_amount) - parseFloat(a.sales_amount);
+    });
+
+  const maxProductSales = Math.max(...rawProductData.map(p => parseFloat(p.sales_amount)), 100);
+
+  // Key Product Highlights
+  const topEarner = [...rawProductData].sort((a, b) => parseFloat(b.sales_amount) - parseFloat(a.sales_amount))[0];
+  const topProfitDish = [...rawProductData].sort((a, b) => parseFloat(b.profit) - parseFloat(a.profit))[0];
+  const topCogsDish = [...rawProductData].sort((a, b) => parseFloat(b.ingredient_cost) - parseFloat(a.ingredient_cost))[0];
 
   return (
     <div className="analytics-page" onClick={() => setActivePoint(null)}>
@@ -495,7 +515,7 @@ const Analytics: React.FC = () => {
           {/* MAIN PERFORMANCE GRAPH CARD */}
           <div className="analytics-main-card" onClick={e => e.stopPropagation()}>
             
-            {/* Card Header: Title + Big Value + Trend % + Options Button */}
+            {/* Card Header */}
             <div className="card-top-header">
               <div>
                 <span className="card-sub-header">Performance Overview</span>
@@ -512,7 +532,7 @@ const Analytics: React.FC = () => {
               </button>
             </div>
 
-            {/* Pixel-Perfect Responsive SVG Wave Graph */}
+            {/* SVG Wave Graph */}
             {!data || data.chartData.length === 0 ? (
               <div className="empty-chart">No sales data for selected period.</div>
             ) : (
@@ -764,25 +784,118 @@ const Analytics: React.FC = () => {
 
           </div>
 
-          {/* PER-PRODUCT PERFORMANCE BAR CHART & DETAILED BREAKDOWN SECTION */}
+          {/* FIGMA DESIGNED PER-PRODUCT PERFORMANCE BAR CHART & HIGHLIGHTS SECTION */}
           <div className="analytics-product-card" onClick={e => e.stopPropagation()}>
+            
+            {/* Header Toolbar */}
             <div className="card-top-header">
               <div>
-                <span className="card-sub-header">Dish Level Profitability</span>
-                <h3 className="product-chart-title">Product Sales, Profit & Ingredient Cost Bar Chart</h3>
+                <span className="card-sub-header">Menu Item Profitability</span>
+                <h3 className="product-chart-title">Product Revenue, Profit & Food Cost Bar Chart</h3>
               </div>
               <div className="product-chart-legend">
-                <span className="legend-chip sales"><span className="dot sales"></span> Sales</span>
-                <span className="legend-chip profit"><span className="dot profit"></span> Profit</span>
+                <span className="legend-chip sales"><span className="dot sales"></span> Sales Amount</span>
+                <span className="legend-chip profit"><span className="dot profit"></span> Net Profit</span>
                 <span className="legend-chip cogs"><span className="dot cogs"></span> Ingredient Cost</span>
               </div>
             </div>
 
-            {productData.length === 0 ? (
-              <div className="empty-chart">No product sales logged for the selected period.</div>
+            {/* Top Product Highlights Cards Strip (Figma Style) */}
+            {rawProductData.length > 0 && (
+              <div className="product-highlights-grid">
+                
+                {/* Highlight 1: Top Revenue Dish */}
+                {topEarner && (
+                  <div className="product-highlight-card gold">
+                    <div className="highlight-tag">🏆 Highest Revenue Dish</div>
+                    <h4 className="highlight-dish-name">{topEarner.item_name}</h4>
+                    <div className="highlight-meta">
+                      <span className="val">₹{parseFloat(topEarner.sales_amount).toLocaleString('en-IN')}</span>
+                      <span className="sub">{topEarner.units_sold} units sold</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Highlight 2: Highest Net Profit Dish */}
+                {topProfitDish && (
+                  <div className="product-highlight-card green">
+                    <div className="highlight-tag">📈 Most Profitable Dish</div>
+                    <h4 className="highlight-dish-name">{topProfitDish.item_name}</h4>
+                    <div className="highlight-meta">
+                      <span className="val green">₹{parseFloat(topProfitDish.profit).toLocaleString('en-IN')}</span>
+                      <span className="sub">
+                        {parseFloat(topProfitDish.sales_amount) > 0 
+                          ? `${((parseFloat(topProfitDish.profit) / parseFloat(topProfitDish.sales_amount)) * 100).toFixed(0)}% margin`
+                          : '0%'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Highlight 3: High Ingredient Cost Warning */}
+                {topCogsDish && (
+                  <div className="product-highlight-card amber">
+                    <div className="highlight-tag">⚠️ High Food Cost Item</div>
+                    <h4 className="highlight-dish-name">{topCogsDish.item_name}</h4>
+                    <div className="highlight-meta">
+                      <span className="val amber">₹{parseFloat(topCogsDish.ingredient_cost).toLocaleString('en-IN')}</span>
+                      <span className="sub">Raw ingredient cost</span>
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            )}
+
+            {/* Filter Search & Sort Bar */}
+            <div className="product-filter-bar">
+              <div className="product-search-input-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="search-icon">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search product name..."
+                  value={productSearch}
+                  onChange={e => setProductSearch(e.target.value)}
+                />
+              </div>
+
+              <div className="product-sort-strip">
+                <span className="sort-label">Sort By:</span>
+                <button
+                  className={`sort-pill ${productSort === 'sales' ? 'active' : ''}`}
+                  onClick={() => setProductSort('sales')}
+                >
+                  Sales Revenue
+                </button>
+                <button
+                  className={`sort-pill ${productSort === 'profit' ? 'active' : ''}`}
+                  onClick={() => setProductSort('profit')}
+                >
+                  Net Profit
+                </button>
+                <button
+                  className={`sort-pill ${productSort === 'cogs' ? 'active' : ''}`}
+                  onClick={() => setProductSort('cogs')}
+                >
+                  Ingredient Cost
+                </button>
+                <button
+                  className={`sort-pill ${productSort === 'units' ? 'active' : ''}`}
+                  onClick={() => setProductSort('units')}
+                >
+                  Units Sold
+                </button>
+              </div>
+            </div>
+
+            {/* Dynamic Product Bar Chart Rows */}
+            {filteredProducts.length === 0 ? (
+              <div className="empty-chart">No products match your search or filter.</div>
             ) : (
               <div className="product-bar-chart-container">
-                {productData.map((prod) => {
+                {filteredProducts.map((prod, idx) => {
                   const salesVal = parseFloat(prod.sales_amount);
                   const profitVal = parseFloat(prod.profit);
                   const cogsVal = parseFloat(prod.ingredient_cost);
@@ -791,33 +904,48 @@ const Analytics: React.FC = () => {
                   const profitWidth = (Math.max(0, profitVal) / maxProductSales) * 100;
                   const cogsWidth = (cogsVal / maxProductSales) * 100;
 
-                  const marginPct = salesVal > 0 ? ((profitVal / salesVal) * 100).toFixed(0) : '0';
+                  const marginPctVal = salesVal > 0 ? (profitVal / salesVal) * 100 : 0;
+                  const cogsPctVal = salesVal > 0 ? (cogsVal / salesVal) * 100 : 0;
 
                   return (
                     <div key={prod.item_id} className="product-bar-row">
+                      
+                      {/* Product Name & Badges */}
                       <div className="product-info-col">
-                        <span className="prod-name">{prod.item_name}</span>
-                        <span className="prod-badge">{prod.units_sold} sold • {marginPct}% margin</span>
+                        <div className="name-rank-row">
+                          {idx < 3 && <span className={`rank-badge rank-${idx + 1}`}>#{idx + 1}</span>}
+                          <span className="prod-name">{prod.item_name}</span>
+                        </div>
+                        <span className="prod-badge">{prod.units_sold} units sold • {marginPctVal.toFixed(0)}% net margin</span>
                       </div>
 
+                      {/* Stacked Group Bars */}
                       <div className="bars-stack-col">
-                        {/* 1. Sales Bar (Violet) */}
-                        <div className="single-bar-container" title={`Sales: ₹${salesVal.toFixed(2)}`}>
+                        
+                        {/* 1. Sales Bar (Indigo Gradient) */}
+                        <div className="single-bar-container" title={`Total Sales: ₹${salesVal.toFixed(2)}`}>
                           <div className="bar-fill sales" style={{ width: `${salesWidth}%` }}></div>
                           <span className="bar-val">₹{salesVal.toFixed(0)}</span>
                         </div>
 
-                        {/* 2. Profit Bar (Green) */}
-                        <div className="single-bar-container" title={`Profit: ₹${profitVal.toFixed(2)}`}>
+                        {/* 2. Net Profit Bar (Emerald Green Gradient) */}
+                        <div className="single-bar-container" title={`Net Profit: ₹${profitVal.toFixed(2)}`}>
                           <div className="bar-fill profit" style={{ width: `${profitWidth}%` }}></div>
                           <span className="bar-val profit">₹{profitVal.toFixed(0)}</span>
                         </div>
 
-                        {/* 3. Ingredient Cost Bar (Amber) */}
+                        {/* 3. Ingredient Cost Bar (Amber Gradient) */}
                         <div className="single-bar-container" title={`Ingredient Cost: ₹${cogsVal.toFixed(2)}`}>
                           <div className="bar-fill cogs" style={{ width: `${cogsWidth}%` }}></div>
                           <span className="bar-val cogs">₹{cogsVal.toFixed(0)}</span>
                         </div>
+
+                        {/* Segmented Distribution Pill Bar (Figma UX Detail) */}
+                        <div className="segmented-ratio-bar" title={`Profit: ${marginPctVal.toFixed(0)}% | Food Cost: ${cogsPctVal.toFixed(0)}%`}>
+                          <div className="segment profit" style={{ width: `${marginPctVal}%` }}></div>
+                          <div className="segment cogs" style={{ width: `${cogsPctVal}%` }}></div>
+                        </div>
+
                       </div>
                     </div>
                   );
@@ -840,7 +968,7 @@ const Analytics: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {productData.map((prod) => {
+                  {filteredProducts.map((prod) => {
                     const salesVal = parseFloat(prod.sales_amount);
                     const profitVal = parseFloat(prod.profit);
                     const cogsVal = parseFloat(prod.ingredient_cost);
