@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS items (
     price_includes_tax BOOLEAN DEFAULT false,
     current_stock INT DEFAULT 0,
     is_favorite BOOLEAN DEFAULT false,
+    is_active BOOLEAN DEFAULT true,
     FOREIGN KEY (business_id) REFERENCES business_profile(id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
 );

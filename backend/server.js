@@ -187,7 +187,7 @@ app.put('/api/business/:id', async (req, res) => {
 app.get('/api/items/:businessId', async (req, res) => {
   const { businessId } = req.params;
   try {
-    const [rows] = await db.query('SELECT * FROM items WHERE business_id = ? ORDER BY id DESC', [businessId]);
+    const [rows] = await db.query('SELECT * FROM items WHERE business_id = ? AND (is_active IS NULL OR is_active = true) ORDER BY id DESC', [businessId]);
     res.json({ status: 'success', items: rows });
   } catch (error) {
     res.status(500).json({ status: 'error', message: 'Failed to fetch items', error: error.message });
@@ -198,7 +198,7 @@ app.post('/api/items', async (req, res) => {
   const { business_id, name, sales_price, tax_percentage, price_includes_tax } = req.body;
   try {
     const [result] = await db.query(
-      'INSERT INTO items (business_id, name, sales_price, tax_percentage, price_includes_tax) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO items (business_id, name, sales_price, tax_percentage, price_includes_tax, is_active) VALUES (?, ?, ?, ?, ?, true)',
       [business_id, name, sales_price, tax_percentage || 0, price_includes_tax || false]
     );
     res.json({ status: 'success', message: 'Item added', itemId: result.insertId });
@@ -224,8 +224,9 @@ app.put('/api/items/:id', async (req, res) => {
 app.delete('/api/items/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    await db.query('DELETE FROM items WHERE id = ?', [id]);
-    res.json({ status: 'success', message: 'Item deleted' });
+    // Soft-delete item so historical sales, analytics, and past receipts stay intact
+    await db.query('UPDATE items SET is_active = false WHERE id = ?', [id]);
+    res.json({ status: 'success', message: 'Item archived' });
   } catch (error) {
     res.status(500).json({ status: 'error', message: 'Failed to delete item', error: error.message });
   }
