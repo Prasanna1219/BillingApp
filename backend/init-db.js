@@ -5,24 +5,34 @@ const path = require('path');
 
 async function initializeDB() {
   try {
-    // Connect without database selected first to create it
-    const connection = await mysql.createConnection({
+    const config = {
       host: process.env.DB_HOST || 'localhost',
+      port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 3306,
       user: process.env.DB_USER || 'root',
       password: process.env.DB_PASSWORD || '',
       database: process.env.DB_NAME || 'billing_app',
-      multipleStatements: true // Required to run multiple queries from file
-    });
+      multipleStatements: true
+    };
 
-    console.log('Connected to MySQL server.');
+    if (process.env.DB_PORT || process.env.DB_SSL === 'true') {
+      config.ssl = { rejectUnauthorized: false };
+    }
+
+    console.log(`Connecting to MySQL database at ${config.host}:${config.port}...`);
+    const connection = await mysql.createConnection(config);
+
+    console.log('Connected to MySQL server successfully!');
 
     const schemaPath = path.join(__dirname, 'schema.sql');
-    const schema = fs.readFileSync(schemaPath, 'utf8');
+    let schema = fs.readFileSync(schemaPath, 'utf8');
+
+    schema = schema.replace(/CREATE DATABASE IF NOT EXISTS billing_app;/gi, '');
+    schema = schema.replace(/USE billing_app;/gi, '');
 
     console.log('Executing schema.sql...');
     await connection.query(schema);
 
-    console.log('Database and tables created successfully!');
+    console.log('✅ Database schema and tables created successfully!');
     await connection.end();
   } catch (error) {
     console.error('Error initializing database:', error);
