@@ -114,13 +114,15 @@
   padding: 0; /* Full bleed on mobile */
   overflow-y: auto;
   box-sizing: border-box;
-  padding-bottom: 96px; /* Space for mobile bottom bar */
+  padding-bottom: 72px; /* Matches 72px mobile bottom nav bar height */
+  background-color: #f8fafc;
 }
 
 @media (min-width: 769px) {
   .content {
     padding: 24px;
     padding-bottom: 24px;
+    background-color: transparent;
   }
 }
 
