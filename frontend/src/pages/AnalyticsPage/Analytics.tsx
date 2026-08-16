@@ -43,6 +43,17 @@ const Analytics: React.FC = () => {
   const [showCogs, setShowCogs] = useState(true);
   const [showIngUsed, setShowIngUsed] = useState(true);
 
+  // Active Clicked Point for Tooltip Card
+  const [activePoint, setActivePoint] = useState<{
+    index: number;
+    x: number;
+    date: string;
+    sales: string;
+    profit: string;
+    cogs: string;
+    ingredients_used: string;
+  } | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [data, setData] = useState<AnalyticsData | null>(null);
@@ -83,6 +94,7 @@ const Analytics: React.FC = () => {
   const fetchAnalytics = async () => {
     setLoading(true);
     setError('');
+    setActivePoint(null);
     try {
       const res = await fetch(`/api/reports/analytics/${businessId}?startDate=${startDate}&endDate=${endDate}&groupBy=${groupBy}`);
       const resData = await res.json();
@@ -210,7 +222,7 @@ const Analytics: React.FC = () => {
 
     maxVal = Math.max(...allVals, 100);
     
-    // Pixel-perfect dynamic spacing based on real container width
+    // Dynamic spacing based on container width
     const minPaddingX = 24;
     const availableWidth = Math.max(chartContainerWidth - minPaddingX * 2, 280);
     const numPoints = Math.max(data.chartData.length - 1, 1);
@@ -254,7 +266,7 @@ const Analytics: React.FC = () => {
   }
 
   return (
-    <div className="analytics-page">
+    <div className="analytics-page" onClick={() => setActivePoint(null)}>
       
       {/* Header */}
       <div className="analytics-header">
@@ -272,7 +284,7 @@ const Analytics: React.FC = () => {
       </div>
 
       {/* Date Pickers & Range Toolbar */}
-      <div className="analytics-controls">
+      <div className="analytics-controls" onClick={e => e.stopPropagation()}>
         
         {/* Quick Range Pills */}
         <div className="quick-ranges-strip">
@@ -368,7 +380,7 @@ const Analytics: React.FC = () => {
         <div className="analytics-content">
           
           {/* Preset Metric Selection Pills Bar */}
-          <div className="preset-metric-pills-bar">
+          <div className="preset-metric-pills-bar" onClick={e => e.stopPropagation()}>
             <button
               className={`preset-pill ${metricPreset === 'all' ? 'active' : ''}`}
               onClick={() => handlePresetChange('all')}
@@ -402,7 +414,7 @@ const Analytics: React.FC = () => {
           </div>
 
           {/* KPI Summary Strip */}
-          <div className="analytics-kpi-grid">
+          <div className="analytics-kpi-grid" onClick={e => e.stopPropagation()}>
             
             {/* KPI 1: Total Revenue */}
             <div className="kpi-card highlight-purple">
@@ -467,7 +479,7 @@ const Analytics: React.FC = () => {
           </div>
 
           {/* MAIN PERFORMANCE GRAPH CARD */}
-          <div className="analytics-main-card">
+          <div className="analytics-main-card" onClick={e => e.stopPropagation()}>
             
             {/* Card Header: Title + Big Value + Trend % + Options Button */}
             <div className="card-top-header">
@@ -486,32 +498,80 @@ const Analytics: React.FC = () => {
               </button>
             </div>
 
-            {/* Pixel-Perfect Crystal Clear Responsive SVG Wave Graph */}
+            {/* Pixel-Perfect Responsive SVG Wave Graph */}
             {!data || data.chartData.length === 0 ? (
               <div className="empty-chart">No sales data for selected period.</div>
             ) : (
               <div className="chart-scroll-wrapper" ref={chartWrapperRef}>
+                
+                {/* Floating Interactive Tooltip Popover Card */}
+                {activePoint && (
+                  <div 
+                    className="chart-tooltip-popover"
+                    style={{
+                      left: Math.min(Math.max(activePoint.x, 110), chartContainerWidth - 110),
+                      top: 10
+                    }}
+                  >
+                    <div className="tooltip-header">
+                      <span>{formatDateLabel(activePoint.date)}</span>
+                      <button className="tooltip-close-btn" onClick={() => setActivePoint(null)}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: '12px', height: '12px' }}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    <div className="tooltip-body">
+                      {showSales && (
+                        <div className="tooltip-row">
+                          <span className="dot sales"></span>
+                          <span className="tooltip-label">Sales:</span>
+                          <span className="tooltip-val">₹{parseFloat(activePoint.sales).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                        </div>
+                      )}
+                      {showProfit && (
+                        <div className="tooltip-row">
+                          <span className="dot profit"></span>
+                          <span className="tooltip-label">Net Profit:</span>
+                          <span className="tooltip-val">₹{parseFloat(activePoint.profit).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                        </div>
+                      )}
+                      {showCogs && (
+                        <div className="tooltip-row">
+                          <span className="dot cogs"></span>
+                          <span className="tooltip-label">Ing. Cost:</span>
+                          <span className="tooltip-val">₹{parseFloat(activePoint.cogs).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                        </div>
+                      )}
+                      {showIngUsed && (
+                        <div className="tooltip-row">
+                          <span className="dot ingused"></span>
+                          <span className="tooltip-label">Ing. Used:</span>
+                          <span className="tooltip-val">{parseFloat(activePoint.ingredients_used).toFixed(2)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <svg width={chartContainerWidth} height={chartHeight} className="analytics-svg-chart">
                   <defs>
-                    {/* Indigo Fading Gradient for Sales Wave */}
                     <linearGradient id="salesWaveGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#6366f1" stopOpacity="0.25" />
                       <stop offset="100%" stopColor="#6366f1" stopOpacity="0.0" />
                     </linearGradient>
 
-                    {/* Emerald Fading Gradient for Profit Wave */}
                     <linearGradient id="profitWaveGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#10b981" stopOpacity="0.22" />
                       <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
                     </linearGradient>
 
-                    {/* Amber Fading Gradient for Ingredient Cost */}
                     <linearGradient id="cogsWaveGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.20" />
                       <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.0" />
                     </linearGradient>
 
-                    {/* Pink Fading Gradient for Ingredients Used */}
                     <linearGradient id="ingWaveGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#ec4899" stopOpacity="0.20" />
                       <stop offset="100%" stopColor="#ec4899" stopOpacity="0.0" />
@@ -526,13 +586,31 @@ const Analytics: React.FC = () => {
                     );
                   })}
 
+                  {/* Vertical Guide Line on Clicked Active Point */}
+                  {activePoint && (
+                    <line 
+                      x1={activePoint.x} 
+                      y1={15} 
+                      x2={activePoint.x} 
+                      y2={baselineY} 
+                      stroke="#6366f1" 
+                      strokeDasharray="4 3" 
+                      strokeWidth="1.5" 
+                    />
+                  )}
+
                   {/* 1. Sales Wave */}
                   {showSales && pointsSales.length > 0 && (
                     <g>
                       <path d={buildSmoothAreaPath(pointsSales, baselineY)} fill="url(#salesWaveGrad)" />
                       <path d={buildSmoothPath(pointsSales)} fill="none" stroke="#6366f1" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                      {pointsSales.map(p => (
-                        <circle key={`sp-${p.x}`} cx={p.x} cy={p.y} r="4.5" fill="#ffffff" stroke="#6366f1" strokeWidth="2.5" />
+                      {pointsSales.map((p, idx) => (
+                        <g key={`sp-${p.x}`}>
+                          {activePoint?.index === idx && (
+                            <circle cx={p.x} cy={p.y} r="8" fill="rgba(99, 102, 241, 0.25)" />
+                          )}
+                          <circle cx={p.x} cy={p.y} r="4.5" fill="#ffffff" stroke="#6366f1" strokeWidth="2.5" />
+                        </g>
                       ))}
                     </g>
                   )}
@@ -542,8 +620,13 @@ const Analytics: React.FC = () => {
                     <g>
                       <path d={buildSmoothAreaPath(pointsProfit, baselineY)} fill="url(#profitWaveGrad)" />
                       <path d={buildSmoothPath(pointsProfit)} fill="none" stroke="#10b981" strokeWidth="2.5" strokeDasharray="4 3" strokeLinecap="round" strokeLinejoin="round" />
-                      {pointsProfit.map(p => (
-                        <circle key={`pp-${p.x}`} cx={p.x} cy={p.y} r="4.5" fill="#ffffff" stroke="#10b981" strokeWidth="2.5" />
+                      {pointsProfit.map((p, idx) => (
+                        <g key={`pp-${p.x}`}>
+                          {activePoint?.index === idx && (
+                            <circle cx={p.x} cy={p.y} r="8" fill="rgba(16, 185, 129, 0.25)" />
+                          )}
+                          <circle cx={p.x} cy={p.y} r="4.5" fill="#ffffff" stroke="#10b981" strokeWidth="2.5" />
+                        </g>
                       ))}
                     </g>
                   )}
@@ -553,8 +636,13 @@ const Analytics: React.FC = () => {
                     <g>
                       <path d={buildSmoothAreaPath(pointsCogs, baselineY)} fill="url(#cogsWaveGrad)" />
                       <path d={buildSmoothPath(pointsCogs)} fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                      {pointsCogs.map(p => (
-                        <circle key={`cp-${p.x}`} cx={p.x} cy={p.y} r="4" fill="#ffffff" stroke="#f59e0b" strokeWidth="2" />
+                      {pointsCogs.map((p, idx) => (
+                        <g key={`cp-${p.x}`}>
+                          {activePoint?.index === idx && (
+                            <circle cx={p.x} cy={p.y} r="7" fill="rgba(245, 158, 11, 0.25)" />
+                          )}
+                          <circle cx={p.x} cy={p.y} r="4" fill="#ffffff" stroke="#f59e0b" strokeWidth="2" />
+                        </g>
                       ))}
                     </g>
                   )}
@@ -564,11 +652,49 @@ const Analytics: React.FC = () => {
                     <g>
                       <path d={buildSmoothAreaPath(pointsIngUsed, baselineY)} fill="url(#ingWaveGrad)" />
                       <path d={buildSmoothPath(pointsIngUsed)} fill="none" stroke="#ec4899" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                      {pointsIngUsed.map(p => (
-                        <circle key={`ip-${p.x}`} cx={p.x} cy={p.y} r="4" fill="#ffffff" stroke="#ec4899" strokeWidth="2" />
+                      {pointsIngUsed.map((p, idx) => (
+                        <g key={`ip-${p.x}`}>
+                          {activePoint?.index === idx && (
+                            <circle cx={p.x} cy={p.y} r="7" fill="rgba(236, 72, 153, 0.25)" />
+                          )}
+                          <circle cx={p.x} cy={p.y} r="4" fill="#ffffff" stroke="#ec4899" strokeWidth="2" />
+                        </g>
                       ))}
                     </g>
                   )}
+
+                  {/* Invisible Clickable Hitboxes for Touch/Mouse Click Events */}
+                  {data.chartData.map((d, i) => {
+                    const minPaddingX = 24;
+                    const availableWidth = Math.max(chartContainerWidth - minPaddingX * 2, 280);
+                    const numPoints = Math.max(data.chartData.length - 1, 1);
+                    const spacing = availableWidth / numPoints;
+                    const x = minPaddingX + i * spacing;
+
+                    return (
+                      <rect
+                        key={`hitbox-${i}`}
+                        x={x - Math.max(spacing / 2, 16)}
+                        y={10}
+                        width={Math.max(spacing, 32)}
+                        height={baselineY + 20}
+                        fill="transparent"
+                        style={{ cursor: 'pointer' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActivePoint({
+                            index: i,
+                            x,
+                            date: d.date,
+                            sales: d.sales,
+                            profit: d.profit,
+                            cogs: d.cogs,
+                            ingredients_used: d.ingredients_used
+                          });
+                        }}
+                      />
+                    );
+                  })}
 
                   {/* X Axis Time Labels */}
                   {data.chartData.map((d, i) => {
