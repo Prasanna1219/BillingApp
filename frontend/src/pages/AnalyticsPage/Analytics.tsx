@@ -11,9 +11,19 @@ interface ChartItem {
   total?: string;
 }
 
+interface ProductItemData {
+  item_id: number;
+  item_name: string;
+  units_sold: number;
+  sales_amount: string;
+  ingredient_cost: string;
+  profit: string;
+}
+
 interface AnalyticsData {
   groupBy: string;
   chartData: ChartItem[];
+  productData: ProductItemData[];
   summary: { count: number; total: string };
   splits: Array<{ payment_method: string; total: string }>;
 }
@@ -43,7 +53,7 @@ const Analytics: React.FC = () => {
   const [showCogs, setShowCogs] = useState(true);
   const [showIngUsed, setShowIngUsed] = useState(true);
 
-  // Active Clicked Point for Tooltip Card
+  // Active Clicked Point for Wave Tooltip Card
   const [activePoint, setActivePoint] = useState<{
     index: number;
     x: number;
@@ -265,6 +275,10 @@ const Analytics: React.FC = () => {
     });
   }
 
+  // Max value calculation for Product Bar Chart
+  const productData = data?.productData || [];
+  const maxProductSales = Math.max(...productData.map(p => parseFloat(p.sales_amount)), 100);
+
   return (
     <div className="analytics-page" onClick={() => setActivePoint(null)}>
       
@@ -278,7 +292,7 @@ const Analytics: React.FC = () => {
           </button>
           <div>
             <h1>Sales Analytics</h1>
-            <p>Track business revenue, margins, and ingredient performance.</p>
+            <p>Track business revenue, product margins, and ingredient performance.</p>
           </div>
         </div>
       </div>
@@ -663,7 +677,7 @@ const Analytics: React.FC = () => {
                     </g>
                   )}
 
-                  {/* Invisible Clickable Hitboxes for Touch/Mouse Click Events */}
+                  {/* Invisible Clickable Hitboxes */}
                   {data.chartData.map((d, i) => {
                     const minPaddingX = 24;
                     const availableWidth = Math.max(chartContainerWidth - minPaddingX * 2, 280);
@@ -746,6 +760,109 @@ const Analytics: React.FC = () => {
                 <span className="dot ingused"></span>
                 Ingredients Used
               </button>
+            </div>
+
+          </div>
+
+          {/* PER-PRODUCT PERFORMANCE BAR CHART & DETAILED BREAKDOWN SECTION */}
+          <div className="analytics-product-card" onClick={e => e.stopPropagation()}>
+            <div className="card-top-header">
+              <div>
+                <span className="card-sub-header">Dish Level Profitability</span>
+                <h3 className="product-chart-title">Product Sales, Profit & Ingredient Cost Bar Chart</h3>
+              </div>
+              <div className="product-chart-legend">
+                <span className="legend-chip sales"><span className="dot sales"></span> Sales</span>
+                <span className="legend-chip profit"><span className="dot profit"></span> Profit</span>
+                <span className="legend-chip cogs"><span className="dot cogs"></span> Ingredient Cost</span>
+              </div>
+            </div>
+
+            {productData.length === 0 ? (
+              <div className="empty-chart">No product sales logged for the selected period.</div>
+            ) : (
+              <div className="product-bar-chart-container">
+                {productData.map((prod) => {
+                  const salesVal = parseFloat(prod.sales_amount);
+                  const profitVal = parseFloat(prod.profit);
+                  const cogsVal = parseFloat(prod.ingredient_cost);
+
+                  const salesWidth = (salesVal / maxProductSales) * 100;
+                  const profitWidth = (Math.max(0, profitVal) / maxProductSales) * 100;
+                  const cogsWidth = (cogsVal / maxProductSales) * 100;
+
+                  const marginPct = salesVal > 0 ? ((profitVal / salesVal) * 100).toFixed(0) : '0';
+
+                  return (
+                    <div key={prod.item_id} className="product-bar-row">
+                      <div className="product-info-col">
+                        <span className="prod-name">{prod.item_name}</span>
+                        <span className="prod-badge">{prod.units_sold} sold • {marginPct}% margin</span>
+                      </div>
+
+                      <div className="bars-stack-col">
+                        {/* 1. Sales Bar (Violet) */}
+                        <div className="single-bar-container" title={`Sales: ₹${salesVal.toFixed(2)}`}>
+                          <div className="bar-fill sales" style={{ width: `${salesWidth}%` }}></div>
+                          <span className="bar-val">₹{salesVal.toFixed(0)}</span>
+                        </div>
+
+                        {/* 2. Profit Bar (Green) */}
+                        <div className="single-bar-container" title={`Profit: ₹${profitVal.toFixed(2)}`}>
+                          <div className="bar-fill profit" style={{ width: `${profitWidth}%` }}></div>
+                          <span className="bar-val profit">₹{profitVal.toFixed(0)}</span>
+                        </div>
+
+                        {/* 3. Ingredient Cost Bar (Amber) */}
+                        <div className="single-bar-container" title={`Ingredient Cost: ₹${cogsVal.toFixed(2)}`}>
+                          <div className="bar-fill cogs" style={{ width: `${cogsWidth}%` }}></div>
+                          <span className="bar-val cogs">₹{cogsVal.toFixed(0)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Detailed Product Performance Data Table */}
+            <div className="product-details-table-wrapper">
+              <h4>Product Performance Breakdown Table</h4>
+              <table className="product-analytics-table">
+                <thead>
+                  <tr>
+                    <th>Product / Dish</th>
+                    <th>Units Sold</th>
+                    <th>Sales Amount</th>
+                    <th>Ingredient Cost (COGS)</th>
+                    <th>Net Profit</th>
+                    <th>Margin %</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {productData.map((prod) => {
+                    const salesVal = parseFloat(prod.sales_amount);
+                    const profitVal = parseFloat(prod.profit);
+                    const cogsVal = parseFloat(prod.ingredient_cost);
+                    const marginPct = salesVal > 0 ? ((profitVal / salesVal) * 100).toFixed(1) : '0.0';
+
+                    return (
+                      <tr key={`tbl-${prod.item_id}`}>
+                        <td className="font-bold">{prod.item_name}</td>
+                        <td><span className="units-badge">{prod.units_sold} pcs</span></td>
+                        <td className="font-bold">₹{salesVal.toFixed(2)}</td>
+                        <td className="cogs-text">₹{cogsVal.toFixed(2)}</td>
+                        <td className="profit-text font-bold">₹{profitVal.toFixed(2)}</td>
+                        <td>
+                          <span className={`margin-pill ${parseFloat(marginPct) >= 50 ? 'high' : 'medium'}`}>
+                            {marginPct}%
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
 
           </div>

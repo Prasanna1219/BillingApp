@@ -699,10 +699,47 @@ app.get('/api/reports/analytics/:businessId', async (req, res) => {
       [businessId, startDate, endDate]
     );
 
+    // Per-Product Sales, Profit, and Ingredient Cost Breakdown
+    const [productResult] = await db.query(
+      `SELECT 
+         i.id as item_id,
+         i.name as item_name,
+         IFNULL(SUM(oi.quantity), 0) as units_sold,
+         IFNULL(SUM(oi.quantity * oi.sales_price), 0) as sales_amount,
+         IFNULL(SUM(oi.quantity * (
+           SELECT IFNULL(SUM(r.quantity_needed * (ing.purchase_cost / GREATEST(ing.quantity_purchased, 0.001))), 0)
+           FROM recipes r
+           JOIN ingredients ing ON r.ingredient_id = ing.id
+           WHERE r.item_id = i.id
+         )), 0) as ingredient_cost
+       FROM items i
+       JOIN order_items oi ON i.id = oi.item_id
+       JOIN orders o ON oi.order_id = o.id AND DATE(o.created_at) >= ? AND DATE(o.created_at) <= ?
+       WHERE i.business_id = ?
+       GROUP BY i.id, i.name
+       ORDER BY sales_amount DESC`,
+      [startDate, endDate, businessId]
+    );
+
+    const productData = productResult.map(p => {
+      const sales = parseFloat(p.sales_amount) || 0;
+      const cogs = parseFloat(p.ingredient_cost) || 0;
+      const profit = sales - cogs;
+      return {
+        item_id: p.item_id,
+        item_name: p.item_name,
+        units_sold: parseInt(p.units_sold, 10) || 0,
+        sales_amount: sales.toFixed(2),
+        ingredient_cost: cogs.toFixed(2),
+        profit: profit.toFixed(2)
+      };
+    });
+
     res.json({
       status: 'success',
       groupBy,
       chartData,
+      productData,
       summary: summaryResult[0],
       splits: splitsResult
     });

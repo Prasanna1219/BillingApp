@@ -588,6 +588,218 @@
 .legend-item .dot.cogs { background-color: #f59e0b; }
 .legend-item .dot.ingused { background-color: #ec4899; }
 
+/* PER-PRODUCT BAR CHART & BREAKDOWN CARD */
+.analytics-product-card {
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+  border-radius: 24px;
+  padding: 20px 16px;
+  margin-top: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+}
+
+@media (min-width: 769px) {
+  .analytics-product-card {
+    padding: 28px;
+  }
+}
+
+.product-chart-title {
+  margin: 4px 0 0 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.product-chart-legend {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.legend-chip {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #f8fafc;
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.legend-chip .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.legend-chip .dot.sales { background-color: #6366f1; }
+.legend-chip .dot.profit { background-color: #10b981; }
+.legend-chip .dot.cogs { background-color: #f59e0b; }
+
+/* Product Horizontal Bar Chart Container */
+.product-bar-chart-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 20px 0 28px 0;
+}
+
+.product-bar-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background-color: #f8fafc;
+  border: 1px solid #f1f5f9;
+  transition: all 0.15s ease;
+}
+
+.product-bar-row:hover {
+  background-color: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+  border-color: #cbd5e1;
+}
+
+@media (min-width: 600px) {
+  .product-bar-row {
+    grid-template-columns: 180px 1fr;
+    align-items: center;
+  }
+}
+
+.product-info-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.prod-name {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.prod-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.bars-stack-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.single-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 12px;
+  background-color: #e2e8f0;
+  border-radius: 6px;
+  position: relative;
+  overflow: visible;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.4s ease;
+}
+
+.bar-fill.sales { background: linear-gradient(90deg, #6366f1, #4f46e5); }
+.bar-fill.profit { background: linear-gradient(90deg, #10b981, #059669); }
+.bar-fill.cogs { background: linear-gradient(90deg, #f59e0b, #d97706); }
+
+.bar-val {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #475569;
+  white-space: nowrap;
+}
+
+.bar-val.profit { color: #059669; }
+.bar-val.cogs { color: #d97706; }
+
+/* Product Analytics Table */
+.product-details-table-wrapper {
+  margin-top: 24px;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 20px;
+  overflow-x: auto;
+}
+
+.product-details-table-wrapper h4 {
+  margin: 0 0 14px 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.product-analytics-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.product-analytics-table th {
+  text-align: left;
+  padding: 10px 12px;
+  background-color: #f1f5f9;
+  color: #475569;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.product-analytics-table td {
+  padding: 12px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+}
+
+.product-analytics-table tr:hover td {
+  background-color: #f8fafc;
+}
+
+.font-bold { font-weight: 800; }
+.cogs-text { color: #d97706; font-weight: 700; }
+.profit-text { color: #059669; }
+
+.units-badge {
+  background-color: #f1f5f9;
+  color: #475569;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.78rem;
+}
+
+.margin-pill {
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 0.75rem;
+}
+
+.margin-pill.high {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.margin-pill.medium {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
 /* Loading & Error States */
 .analytics-loading, .analytics-error {
   text-align: center;
