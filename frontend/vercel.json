@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://billing-backend-8000.onrender.com/api/:path*"
+    },
+    {
+      "source": "/:(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
